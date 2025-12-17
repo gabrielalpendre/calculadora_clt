@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Calculadora de Salário Líquido Mensal</h2>
+<h2 class="mb-4">Calculadora de Salário Mensal e Conversão PJ</h2>
 
 <form method="post" class="card p-4 mt-3">
   <div class="row">
@@ -26,10 +26,20 @@
 
 {% if resultado %}
 <div class="mt-5">
-  <h3>Resultado do Cálculo</h3>
-  <table class="table table-striped mt-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Resultado do Cálculo</h3>
+    <form method="post" action="{{ url_for('export_salario_mensal_pdf') }}" class="m-0">
+        <input type="hidden" name="salario_bruto" value="{{ request.form.get('salario_bruto') }}">
+        <input type="hidden" name="num_dependentes" value="{{ request.form.get('num_dependentes') }}">
+        <input type="hidden" name="va_vr_mensal" value="{{ request.form.get('va_vr_mensal') }}">
+        <input type="hidden" name="bonus_anual" value="{{ request.form.get('bonus_anual') }}">
+        <button type="submit" class="btn btn-success">Exportar para PDF</button>
+    </form>
+  </div>
+
+  <table class="table table-striped">
     <tbody>
-      {% for item, data in resultado.items() %}
+      {% for item, data in resultado.items() if item != 'Valores por Hora' %}
         {% set is_desconto = '(-)' in item %} {% set is_sugestao = 'Sugestão' in item %} {% if not is_sugestao %}
         {% set is_liquido = 'Líquido' in item %}
         {% set row_class = 'table-danger' if is_desconto else ('table-primary' if is_liquido else '') %}
@@ -67,6 +77,34 @@
           </div>
           <small class="d-block text-muted mt-3"><strong>Atenção:</strong> Este valor é uma sugestão para equiparar a remuneração total. Como PJ, você terá custos com impostos (Simples Nacional), contabilidade e possivelmente plano de saúde, que devem ser considerados.</small>
       </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header">
+        <h4>Análise do Valor/Hora</h4>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-6">
+                <div class="p-3 border rounded">
+                    <h5>CLT</h5>
+                    <p class="h3 text-primary">R$ {{ "%.2f"|format(resultado['Valores por Hora'].clt.valor) }} / hora</p>
+                    <small class="text-muted">Considerando 220h mensais.</small>
+                </div>
+            </div>
+            <div class="col-md-6 mt-3 mt-md-0">
+                <div class="p-3 border rounded">
+                    <h5>PJ (Sugestão)</h5>
+                    <p class="h3 text-primary">R$ {{ "%.2f"|format(resultado['Valores por Hora'].pj.valor) }} / hora</p>
+                    <small class="text-muted">Considerando 168h mensais.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+      <a href="/salario-mensal" class="btn btn-secondary">Novo cálculo</a>
   </div>
 </div>
 {% endif %}

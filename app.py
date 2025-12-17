@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Response
 from calculos import (
     DadosEmpregado,
     TipoRescisao,
@@ -7,6 +7,7 @@ from calculos import (
 )
 from remuneracao_mensal import calcular_salario_liquido
 from datetime import datetime, timedelta
+from weasyprint import HTML
 from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__)
@@ -107,6 +108,52 @@ def salario_mensal():
             resultado = calcular_salario_liquido(salario_bruto, num_dependentes, bonus_anual, va_vr_mensal)
 
     return render_template("remuneracao_mensal.html", resultado=resultado)
+
+@app.route("/export/rescisao/pdf", methods=["POST"])
+def export_rescisao_pdf():
+    # Esta rota re-executa a lógica de cálculo com os dados do formulário
+    # para gerar um PDF consistente com o resultado apresentado.
+    form_data = request.form
+    # Reconstruir 'dados' e 'tipo' a partir do form_data
+    tipo = TipoRescisao(form_data["tipo_rescisao"])
+
+    # Simplificação: Recalcula as verbas e impostos
+    # A lógica completa de datas do `index` seria necessária para 100% de precisão
+    dados = DadosEmpregado(
+        salario=float(form_data["salario"]),
+        meses_trabalhados_ferias=int(form_data["meses_trabalhados_ferias"]),
+        meses_trabalhados_13=int(form_data["meses_trabalhados_13"]),
+        dias_trabalhados_saldo=int(form_data["dias_trabalhados_saldo"]),
+        dias_aviso_devido=int(form_data["dias_aviso_devido"]),
+        dias_aviso_cumprido=int(form_data["dias_aviso_cumprido"]),
+        ferias_vencidas=int(form_data["ferias_vencidas"]),
+        ferias_em_dobro=(form_data.get("ferias_em_dobro") == 'True'),
+    )
+    verbas = calcular_rescisao(dados, tipo)
+    impostos = calcular_impostos(verbas, dados.salario)
+    resultado = {**verbas, **impostos}
+    total_bruto = verbas.get("Total Bruto", {}).get("valor", 0)
+    total_descontos_impostos = impostos.get("Total de Descontos", {}).get("valor", 0)
+    desconto_aviso = verbas.get("Aviso prévio", {}).get("valor", 0) if verbas.get("Aviso prévio", {}).get("valor", 0) < 0 else 0
+    liquido = total_bruto + desconto_aviso - total_descontos_impostos
+    resultado["Líquido a Receber"] = {"valor": liquido, "calculo": "..."}
+
+    html = render_template("rescisao_pdf.html", resultado=resultado)
+    pdf = HTML(string=html).write_pdf()
+    return Response(pdf, mimetype='application/pdf', headers={'Content-Disposition': 'attachment;filename=rescisao.pdf'})
+
+@app.route("/export/salario-mensal/pdf", methods=["POST"])
+def export_salario_mensal_pdf():
+    salario_bruto = float(request.form.get("salario_bruto", 0))
+    num_dependentes = int(request.form.get("num_dependentes", 0))
+    bonus_anual = float(request.form.get("bonus_anual", 0))
+    va_vr_mensal = float(request.form.get("va_vr_mensal", 0))
+    
+    resultado = calcular_salario_liquido(salario_bruto, num_dependentes, bonus_anual, va_vr_mensal)
+
+    html = render_template("salario_mensal_pdf.html", resultado=resultado)
+    pdf = HTML(string=html).write_pdf()
+    return Response(pdf, mimetype='application/pdf', headers={'Content-Disposition': 'attachment;filename=salario_mensal.pdf'})
 
 
 if __name__ == "__main__":

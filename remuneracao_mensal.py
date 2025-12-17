@@ -64,10 +64,24 @@ def calcular_salario_liquido(salario_bruto: float, num_dependentes: int = 0, bon
     # 5. Calcular sugestão PJ
     sugestao_pj = sugerir_salario_pj(salario_bruto, bonus_anual, va_vr_mensal)
 
+    # 6. Calcular valor/hora
+    valor_hora_clt = salario_bruto / 220
+    valor_hora_pj = sugestao_pj["valor"] / 168
+
     return {
         "Salário Bruto": {"valor": salario_bruto, "calculo": "Valor base informado."},
         "(-) Desconto INSS": inss_detalhe,
         "(-) Desconto IRRF": irrf_detalhe,
-        "Salário Líquido": {"valor": salario_liquido, "calculo": f"Salário Bruto (R$ {salario_bruto:.2f}) - INSS (R$ {inss_valor:.2f}) - IRRF (R$ {irrf_valor:.2f})"},
+        "Salário Líquido": {
+            "valor": salario_liquido,
+            "calculo": f"Salário Bruto (R$ {salario_bruto:.2f}) - INSS (R$ {inss_valor:.2f}) - IRRF (R$ {irrf_valor:.2f})",
+        },
         "Sugestão Salário PJ": sugestao_pj,
+        "Valores por Hora": {
+            "clt": {
+                "valor": valor_hora_clt,
+                "calculo": f"Salário Bruto (R$ {salario_bruto:.2f}) ÷ 220 horas",
+            },
+            "pj": {"valor": valor_hora_pj, "calculo": f"Salário PJ (R$ {sugestao_pj['valor']:.2f}) ÷ 168 horas"},
+        },
     }

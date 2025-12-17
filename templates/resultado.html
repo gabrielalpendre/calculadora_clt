@@ -1,6 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Resultado da Rescisão</h2>
+<form method="post" action="{{ url_for('export_rescisao_pdf') }}">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Resultado da Rescisão</h2>
+        <!-- Campos ocultos para reenviar os dados para o endpoint do PDF -->
+        <input type="hidden" name="tipo_rescisao" value="{{ request.form.get('tipo_rescisao') }}">
+        <input type="hidden" name="data_inicio" value="{{ request.form.get('data_inicio') }}">
+        <input type="hidden" name="data_fim" value="{{ request.form.get('data_fim', '') }}">
+        <input type="hidden" name="data_solicitacao_demissao" value="{{ request.form.get('data_solicitacao_demissao', '') }}">
+        <input type="hidden" name="salario" value="{{ request.form.get('salario') }}">
+        <input type="hidden" name="dias_trabalhados_saldo" value="{{ resultado['Saldo de salário'].calculo.split('* ')[1].split(' ')[0] if resultado.get('Saldo de salário') else 0 }}">
+        <input type="hidden" name="meses_trabalhados_13" value="{{ resultado['13º salário proporcional'].calculo.split('/')[0] if resultado.get('13º salário proporcional') else 0 }}">
+        <input type="hidden" name="meses_trabalhados_ferias" value="{{ resultado['Férias proporcionais'].calculo.split('/')[0][1:] if resultado.get('Férias proporcionais') and resultado['Férias proporcionais'].valor > 0 else 0 }}">
+        <input type="hidden" name="ferias_vencidas" value="{{ 1 if resultado.get('Férias vencidas') and resultado['Férias vencidas'].valor > 0 else 0 }}">
+        <input type="hidden" name="ferias_em_dobro" value="{{ 'dobro' in resultado.get('Férias vencidas', {}).get('calculo', '') }}">
+        <input type="hidden" name="dias_aviso_devido" value="{{ request.form.get('aviso_devido', 30) }}">
+        <input type="hidden" name="dias_aviso_cumprido" value="{{ request.form.get('aviso_cumprido', 0) }}">
+        <button type="submit" class="btn btn-success">Exportar para PDF</button>
+  </div>
 
 <table class="table table-striped mt-4">
     <caption>Verbas Rescisórias (Recebimentos)</caption>
@@ -111,5 +128,9 @@
   </div>
 </div>
 
-<a href="/" class="btn btn-secondary">Novo cálculo</a>
+<div class="mt-4">
+    <a href="/" class="btn btn-secondary">Novo cálculo</a>
+</div>
+
+
 {% endblock %}

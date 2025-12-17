@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Rescisão</title>
+    <style>
+        body { font-family: sans-serif; color: #333; }
+        h1, h2 { color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .text-end { text-align: right; }
+        .total-bruto { background-color: #e9f7ef; font-weight: bold; }
+        .total-descontos { background-color: #fbe9eb; font-weight: bold; }
+        .total-liquido { background-color: #e0f7fa; font-weight: bold; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>Relatório de Cálculo de Rescisão</h1>
+
+    <h2>Verbas Rescisórias (Recebimentos)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Verba</th>
+                <th class="text-end">Valor (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item, data in resultado.items() %}
+                {% if data.valor > 0 and 'Total' not in item and 'Líquido' not in item and 'Desconto' not in item %}
+                <tr>
+                    <td>{{ item }}</td>
+                    <td class="text-end">{{ "%.2f"|format(data.valor) }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+            <tr class="total-bruto">
+                <td>Total Bruto</td>
+                <td class="text-end">{{ "%.2f"|format(resultado.get('Total Bruto', {}).get('valor', 0)) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Descontos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Desconto</th>
+                <th class="text-end">Valor (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set total_descontos_final = 0 %}
+            {% for item, data in resultado.items() %}
+                 {% if (data.valor < 0 and 'Aviso' in item) or ('Desconto' in item and 'Total' not in item) %}
+                 <tr>
+                     <td>{{ item.replace('(-)', '').strip() }}</td>
+                     <td class="text-end">{{ "%.2f"|format(data.valor) }}</td>
+                 </tr>
+                 {% set total_descontos_final = total_descontos_final + data.valor %}
+                 {% endif %}
+            {% endfor %}
+            <tr class="total-descontos">
+                <td>Total de Descontos</td>
+                <td class="text-end">{{ "%.2f"|format(total_descontos_final) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 style="margin-top: 30px;">Valor Líquido a Receber</h2>
+    <table>
+        <tr class="total-liquido">
+            <td>Líquido a Receber</td>
+            <td class="text-end">R$ {{ "%.2f"|format(resultado.get('Líquido a Receber', {}).get('valor', 0)) }}</td>
+        </tr>
+    </table>
+</body>
+</html>

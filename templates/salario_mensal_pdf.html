@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Salário Mensal</title>
+    <style>
+        body { font-family: sans-serif; color: #333; }
+        h1, h2 { color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .text-end { text-align: right; }
+        .desconto { color: #d9534f; }
+        .liquido { background-color: #e0f7fa; font-weight: bold; }
+        .pj-sugestao { background-color: #f0f9e8; margin-top: 30px; padding: 15px; border: 1px solid #ccc; }
+        .valor-hora { margin-top: 30px; }
+        .valor-hora .col { padding: 15px; border: 1px solid #ddd; border-radius: 5px; text-align: center; }
+        pre { white-space: pre-wrap; font-family: inherit; background-color: #f8f9fa; padding: 1rem; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Relatório de Salário Mensal</h1>
+
+    <table>
+        <tbody>
+            {% for item, data in resultado.items() %}
+                {% if 'Sugestão' not in item and 'Valores por Hora' not in item %}
+                    {% set is_desconto = '(-)' in item %}
+                    {% set is_liquido = 'Líquido' in item %}
+                    <tr class="{{ 'liquido' if is_liquido else '' }}">
+                        <td>{{ item.replace('(-)', '').strip() }}</td>
+                        <td class="text-end {{ 'desconto' if is_desconto else '' }}">{{ "%.2f"|format(data.valor) }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="valor-hora">
+        <h2>Análise do Valor/Hora</h2>
+        <table style="width:100%;">
+            <tr>
+                <td style="width:50%; text-align: center; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                    <h3>CLT</h3>
+                    <p style="font-size: 1.5em; color: #0d6efd;">R$ {{ "%.2f"|format(resultado['Valores por Hora'].clt.valor) }} / hora</p>
+                    <small>Considerando 220h mensais.</small>
+                </td>
+                <td style="width:50%; text-align: center; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                    <h3>PJ (Sugestão)</h3>
+                    <p style="font-size: 1.5em; color: #0d6efd;">R$ {{ "%.2f"|format(resultado['Valores por Hora'].pj.valor) }} / hora</p>
+                    <small>Considerando 168h mensais.</small>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="pj-sugestao">
+        <h2>CLT vs. PJ: Sugestão de Salário</h2>
+        <p>Para compensar a ausência de 13º, férias, FGTS e outros benefícios, um salário PJ equivalente seria:</p>
+        <h3 style="text-align: center;">R$ {{ "%.2f"|format(resultado['Sugestão Salário PJ'].valor) }} / mês</h3>
+        <hr>
+        <h4>Cálculo Detalhado</h4>
+        <pre>{{ resultado['Sugestão Salário PJ'].calculo }}</pre>
+        <small><strong>Atenção:</strong> Este valor é uma sugestão para equiparar a remuneração total. Como PJ, você terá custos com impostos (Simples Nacional), contabilidade e possivelmente plano de saúde, que devem ser considerados.</small>
+    </div>
+
+</body>
+</html>
