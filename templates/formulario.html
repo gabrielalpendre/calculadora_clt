@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Calculadora RH</h2>
+
+<form method="post" class="card p-4 mt-3">
+
+  <div class="mb-3">
+    <label class="form-label">Tipo de rescisão</label>
+    <select class="form-select" name="tipo_rescisao" id="tipo_rescisao">
+      <option value="sem_justa_causa">Sem justa causa</option>
+      <option value="pedido_demissao">Pedido de demissão</option>
+      <option value="justa_causa">Justa causa</option>
+      <option value="acordo">Acordo</option>
+      <option value="termino_contrato">Término de contrato</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Salário mensal</label>
+    <input type="number" step="0.01" class="form-control" name="salario" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Dia do mês que a empresa paga o salário</label>
+    <input type="number" class="form-control" name="dia_pagamento" min="1" max="31" required>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label>Data de início do contrato</label>
+      <input type="date" class="form-control" name="data_inicio" required>
+    </div>
+    <div class="col-md-6 mb-3" id="data_fim_div">
+      <label>Data de fim do contrato</label>
+      <input type="date" class="form-control" name="data_fim" required>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Seção para Pedido de Demissão, controlada por JS -->
+  <div id="aviso_pedido_demissao" style="display: none;">
+    <h5>Aviso Prévio (Pedido de Demissão)</h5>
+    <div class="mb-3">
+      <label>Data da solicitação da demissão</label>
+      <input type="date" class="form-control" name="data_solicitacao_demissao" id="data_solicitacao_demissao">
+    </div>
+    <div class="mb-3">
+      <label>Irá cumprir o aviso prévio de 30 dias?</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="cumprira_aviso" id="cumprira_sim" value="sim" checked>
+        <label class="form-check-label" for="cumprira_sim">Sim</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="cumprira_aviso" id="cumprira_nao" value="nao">
+        <label class="form-check-label" for="cumprira_nao">Não, cumprirei parcialmente ou não cumprirei</label>
+      </div>
+    </div>
+    <div id="data_saida_pretendida_div" class="mb-3" style="display: none;">
+      <label>Se não, qual a data que pretende sair?</label>
+      <input type="date" class="form-control" name="data_saida_pretendida">
+    </div>
+  </div>
+
+  <div class="form-check my-3" id="ferias_vencidas_div" style="display: none;">
+    <input class="form-check-input" type="checkbox" name="tem_ferias_vencidas" id="tem_ferias_vencidas">
+    <label class="form-check-label" for="tem_ferias_vencidas">
+      Possui férias vencidas (1 período)?
+    </label>
+  </div>
+
+  <button class="btn btn-primary mt-4">Calcular</button>
+</form>
+{% endblock %}

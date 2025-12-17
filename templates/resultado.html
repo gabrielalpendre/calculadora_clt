@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Resultado da Rescisão</h2>
+
+<table class="table table-striped mt-4">
+    <caption>Verbas Rescisórias (Recebimentos)</caption>
+    <thead class="table-success">
+        <tr>
+            <th>Verba</th>
+            <th class="text-end">Valor (R$)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item, data in resultado.items() %}
+            {% if data.valor > 0 and 'Total' not in item and 'Líquido' not in item and 'Desconto' not in item %}
+            <tr data-bs-toggle="collapse" href="#collapse-{{ loop.index }}" role="button" aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
+                <td><strong>{{ item }} <i class="fas fa-info-circle text-muted"></i></strong></td>
+                <td class="text-end"><strong>{{ "%.2f"|format(data.valor) }}</strong></td>
+            </tr>
+            <tr class="collapse" id="collapse-{{ loop.index }}">
+                <td colspan="2" class="p-3" style="background-color: #e9f7ef;">
+                    <small><strong>Como chegamos neste valor:</strong><br>{{ data.calculo }}</small>
+                </td>
+            </tr>
+            {% endif %}
+        {% endfor %}
+        <tr class="table-light" data-bs-toggle="collapse" href="#collapse-total-bruto" role="button">
+            <td><strong>Total Bruto</strong></td>
+            <td class="text-end"><strong>{{ "%.2f"|format(resultado.get('Total Bruto', {}).get('valor', 0)) }}</strong></td>
+        </tr>
+        <tr class="collapse" id="collapse-total-bruto">
+            <td colspan="2" class="p-3" style="background-color: #e9f7ef;"><small><strong>Como chegamos neste valor:</strong><br>{{ resultado.get('Total Bruto', {}).get('calculo', '') }}</small></td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="table table-striped mt-4">
+    <caption>Descontos</caption>
+    <thead class="table-danger">
+        <tr>
+            <th>Desconto</th>
+            <th class="text-end">Valor (R$)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item, data in resultado.items() %}
+             {% if (data.valor < 0 and 'Aviso' in item) or ('Desconto' in item and 'Total' not in item) %}
+             <tr data-bs-toggle="collapse" href="#collapse-{{ loop.index }}" role="button" aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
+                 <td><strong>{{ item.replace('(-)', '(-)').strip() }}</strong></td>
+                 <td class="text-end"><strong>{{ "%.2f"|format(data.valor) }}</strong></td>
+             </tr>
+             <tr class="collapse" id="collapse-{{ loop.index }}">
+                <td colspan="2" class="p-3" style="background-color: #fbe9eb;">
+                    <small><strong>Como chegamos neste valor:</strong><br>{{ data.calculo }}</small>
+                </td>
+            </tr>
+             {% endif %}
+        {% endfor %}
+        {% set total_descontos_final = resultado.get('Total de Descontos', {}).get('valor', 0) %}
+        {% if resultado.get('Aviso prévio', {}).get('valor', 0) < 0 %}
+            {% set total_descontos_final = total_descontos_final - resultado.get('Aviso prévio', {}).get('valor', 0) %}
+        {% endif %}
+        <tr class="table-light" data-bs-toggle="collapse" href="#collapse-total-descontos" role="button">
+            <td><strong>Total de Descontos</strong></td>
+            <td class="text-end"><strong>{{ "%.2f"|format(total_descontos_final) }}</strong></td>
+        </tr>
+        <tr class="collapse" id="collapse-total-descontos">
+            <td colspan="2" class="p-3" style="background-color: #fbe9eb;"><small><strong>Como chegamos neste valor:</strong><br>Soma de todos os descontos (INSS, IRRF e Aviso Prévio, se aplicável).</small></td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="alert alert-primary text-center mt-4">
+    <h3>Líquido a Receber: R$ {{ "%.2f"|format(resultado.get('Líquido a Receber', {}).get('valor', 0)) }}</h3>
+</div>
+
+<hr class="my-5">
+
+<div class="accordion" id="guiaCalculos">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingInss">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInss" aria-expanded="false" aria-controls="collapseInss">
+        Como o desconto do INSS é calculado?
+      </button>
+    </h2>
+    <div id="collapseInss" class="accordion-collapse collapse" aria-labelledby="headingInss" data-bs-parent="#guiaCalculos">
+      <div class="accordion-body">
+        <strong>O cálculo é progressivo, como um copo enchendo.</strong> Imagine que seu salário vai preenchendo "faixas" de valores, e cada faixa tem uma porcentagem de desconto (alíquota) diferente.
+        <ul>
+          <li>A primeira parte do seu salário (até R$ 1.518,00) tem um desconto de 7.5%.</li>
+          <li>A parte seguinte (de R$ 1.518,01 até R$ 2.793,88) tem um desconto de 9%.</li>
+          <li>E assim por diante, até o teto.</li>
+        </ul>
+        O valor final do INSS é a <strong>soma dos descontos de cada uma dessas faixas</strong>. Por isso, a alíquota efetiva nunca é exatamente o valor máximo da tabela.
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingIrrf">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIrrf" aria-expanded="false" aria-controls="collapseIrrf">
+        Como o desconto do IRRF (Imposto de Renda) é calculado?
+      </button>
+    </h2>
+    <div id="collapseIrrf" class="accordion-collapse collapse" aria-labelledby="headingIrrf" data-bs-parent="#guiaCalculos">
+      <div class="accordion-body">
+        <strong>É um pouco diferente do INSS.</strong> Primeiro, pegamos o valor bruto das verbas (Salário, Férias, etc.) e subtraímos o valor já descontado do INSS. O resultado é a "base de cálculo" do IRRF.
+        <br><br>
+        Com essa base, encontramos em qual faixa da tabela do Imposto de Renda ela se encaixa. A fórmula então é: <strong>(Base de Cálculo × Alíquota da Faixa) - Parcela a Deduzir</strong>. A "parcela a deduzir" é um valor fixo que ajuda a tornar o imposto mais justo, ajustando o cálculo para quem está no início de uma faixa. O 13º Salário tem seu próprio cálculo de IRRF, separado das outras verbas.
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="/" class="btn btn-secondary">Novo cálculo</a>
+{% endblock %}
