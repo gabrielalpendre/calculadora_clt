@@ -1,14 +1,12 @@
 from dataclasses import dataclass
 from enum import Enum
 
-
 class TipoRescisao(Enum):
     SEM_JUSTA_CAUSA = "sem_justa_causa"
     PEDIDO_DEMISSAO = "pedido_demissao"
     JUSTA_CAUSA = "justa_causa"
     ACORDO = "acordo"
     TERMINO_CONTRATO = "termino_contrato"
-
 
 @dataclass
 class DadosEmpregado:
@@ -21,12 +19,10 @@ class DadosEmpregado:
     ferias_vencidas: int
     ferias_em_dobro: bool
 
-
 def saldo_salario(salario, dias):
     valor = (salario / 30) * dias
     calculo = f"(Salário R$ {salario:.2f} / 30 dias) * {dias} dias trabalhados."
     return {"valor": valor, "calculo": calculo}
-
 
 def aviso_previo(salario, devido, cumprido, tipo_rescisao):
     dias_a_pagar = devido - cumprido
@@ -43,7 +39,6 @@ def aviso_previo(salario, devido, cumprido, tipo_rescisao):
     
     return {"valor": valor, "calculo": calculo}
 
-
 def ferias_vencidas(salario, periodos, dobro):
     if periodos <= 0:
         return {"valor": 0, "calculo": "Nenhum período de férias vencidas."}
@@ -57,7 +52,6 @@ def ferias_vencidas(salario, periodos, dobro):
     calculo = f"{calculo_base} + 1/3 sobre o valor (R$ {terco:.2f})."
     return {"valor": valor, "calculo": calculo}
 
-
 def ferias_proporcionais(salario, meses):
     meses_validos = meses % 12 # Pega apenas os meses do período aquisitivo incompleto
     if meses_validos == 0:
@@ -68,12 +62,10 @@ def ferias_proporcionais(salario, meses):
     calculo = f"({meses_validos}/12 avos de R$ {salario:.2f}) + 1/3 sobre o valor (R$ {terco:.2f})."
     return {"valor": valor, "calculo": calculo}
 
-
 def decimo_terceiro(salario, meses):
     valor = (salario / 12) * meses
     calculo = f"{meses}/12 avos de R$ {salario:.2f}."
     return {"valor": valor, "calculo": calculo}
-
 
 # =========================
 # TABELAS DE IMPOSTO (Exemplos para 2025 - confirmar valores)
@@ -115,7 +107,6 @@ def calcular_inss(base_calculo, tipo_verba=""):
 
     return {"valor": round(inss, 2), "calculo": calculo_str.strip()}
 
-
 def calcular_irrf(base_calculo, num_dependentes=0, tipo_verba=""):
     """Calcula o IRRF com base na tabela de 2025."""
     deducao_dependentes = 189.59 * num_dependentes
@@ -131,7 +122,6 @@ def calcular_irrf(base_calculo, num_dependentes=0, tipo_verba=""):
     valor = (base_irrf * aliquota) - deducao
     calculo = f"Base de cálculo ({tipo_verba}): R$ {base_calculo:.2f}. Base p/ IRRF (já deduzido INSS e dependentes): R$ {base_irrf:.2f}. Fórmula: (R$ {base_irrf:.2f} * {aliquota*100}%) - R$ {deducao:.2f}."
     return {"valor": max(0, round(valor, 2)), "calculo": calculo}
-
 
 def calcular_impostos(verbas, salario_base):
     """
@@ -218,3 +208,87 @@ def calcular_rescisao(dados: DadosEmpregado, tipo: TipoRescisao):
     verbas_brutas["Total Bruto"] = {"valor": total_bruto, "calculo": "Soma de todas as verbas rescisórias."}
 
     return verbas_brutas
+
+def sugerir_salario_pj(salario_bruto: float, bonus_anual: float, va_vr_mensal: float):
+    """
+    Calcula um salário PJ sugerido com base em um pacote de remuneração CLT.
+    """
+    salario_anual = salario_bruto * 12
+    decimo_terceiro = salario_bruto
+    terco_ferias = salario_bruto / 3
+    fgts_anual = salario_anual * 0.08
+    va_vr_anual = va_vr_mensal * 12
+
+    total_anual_clt = (
+        salario_anual
+        + decimo_terceiro
+        + terco_ferias
+        + fgts_anual
+        + va_vr_anual
+        + bonus_anual
+    )
+
+    salario_pj_sugerido = total_anual_clt / 12
+
+    calculo = (
+        f"  Salário Anual (12x): R$ {salario_anual:.2f}\n"
+        f"+ 13º Salário: R$ {decimo_terceiro:.2f}\n"
+        f"+ 1/3 de Férias: R$ {terco_ferias:.2f}\n"
+        f"+ FGTS Anual (8%): R$ {fgts_anual:.2f}\n"
+        f"+ VA/VR Anual (12x): R$ {va_vr_anual:.2f}\n"
+        f"+ Bônus/PLR Anual: R$ {bonus_anual:.2f}\n"
+        f"--------------------------------------------------\n"
+        f"= Total Anualizado CLT: R$ {total_anual_clt:.2f}\n"
+        f"÷ 12 meses\n"
+        f"--------------------------------------------------\n"
+        f"= Salário PJ Mensal Sugerido: R$ {salario_pj_sugerido:.2f}"
+    )
+
+    return {"valor": salario_pj_sugerido, "calculo": calculo}
+
+def calcular_salario_liquido(salario_bruto: float, num_dependentes: int = 0, bonus_anual: float = 0, va_vr_mensal: float = 0):
+    """
+    Calcula o salário líquido mensal a partir do salário bruto,
+    reutilizando as funções de cálculo de imposto.
+    """
+    # 1. Calcular INSS sobre o salário bruto
+    inss_detalhe = calcular_inss(salario_bruto, tipo_verba="Salário Bruto")
+    inss_valor = inss_detalhe["valor"]
+
+    # 2. Calcular a base de cálculo para o IRRF
+    # Base IRRF = Salário Bruto - Desconto INSS - (Dependentes * dedução)
+    base_calculo_irrf = salario_bruto - inss_valor
+
+    # 3. Calcular IRRF
+    irrf_detalhe = calcular_irrf(
+        base_calculo_irrf, num_dependentes, tipo_verba="Salário Bruto"
+    )
+    irrf_valor = irrf_detalhe["valor"]
+
+    # 4. Calcular o salário líquido
+    salario_liquido = salario_bruto - inss_valor - irrf_valor
+
+    # 5. Calcular sugestão PJ
+    sugestao_pj = sugerir_salario_pj(salario_bruto, bonus_anual, va_vr_mensal)
+
+    # 6. Calcular valor/hora
+    valor_hora_clt = salario_bruto / 220
+    valor_hora_pj = sugestao_pj["valor"] / 168
+
+    return {
+        "Salário Bruto": {"valor": salario_bruto, "calculo": "Valor base informado."},
+        "(-) Desconto INSS": inss_detalhe,
+        "(-) Desconto IRRF": irrf_detalhe,
+        "Salário Líquido": {
+            "valor": salario_liquido,
+            "calculo": f"Salário Bruto (R$ {salario_bruto:.2f}) - INSS (R$ {inss_valor:.2f}) - IRRF (R$ {irrf_valor:.2f})",
+        },
+        "Sugestão Salário PJ": sugestao_pj,
+        "Valores por Hora": {
+            "clt": {
+                "valor": valor_hora_clt,
+                "calculo": f"Salário Bruto (R$ {salario_bruto:.2f}) ÷ 220 horas",
+            },
+            "pj": {"valor": valor_hora_pj, "calculo": f"Salário PJ (R$ {sugestao_pj['valor']:.2f}) ÷ 168 horas"},
+        },
+    }

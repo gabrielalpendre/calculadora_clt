@@ -4,8 +4,8 @@ from calculos import (
     TipoRescisao,
     calcular_rescisao,
     calcular_impostos,
+    calcular_salario_liquido,
 )
-from remuneracao_mensal import calcular_salario_liquido
 from datetime import datetime, timedelta
 from weasyprint import HTML
 from dateutil.relativedelta import relativedelta
@@ -90,11 +90,11 @@ def index():
         desconto_aviso = verbas.get("Aviso prévio", {}).get("valor", 0) if verbas.get("Aviso prévio", {}).get("valor", 0) < 0 else 0
         liquido = total_bruto + desconto_aviso - total_descontos_impostos
         resultado["Líquido a Receber"] = {"valor": liquido, "calculo": f"Total Bruto (R$ {total_bruto:.2f}) - Descontos (R$ {total_descontos_impostos + abs(desconto_aviso):.2f})"}
-        return render_template("resultado.html", resultado=resultado)
+        return render_template("calculo_rescisao.html", resultado=resultado)
 
     data_inicio_str = request.args.get('data_inicio')
     data_fim_str = request.args.get('data_fim')
-    return render_template("formulario.html", data_inicio=data_inicio_str, data_fim=data_fim_str)
+    return render_template("formulario_rescisao.html", data_inicio=data_inicio_str, data_fim=data_fim_str)
 
 @app.route("/salario-mensal", methods=["GET", "POST"])
 def salario_mensal():
@@ -111,14 +111,9 @@ def salario_mensal():
 
 @app.route("/export/rescisao/pdf", methods=["POST"])
 def export_rescisao_pdf():
-    # Esta rota re-executa a lógica de cálculo com os dados do formulário
-    # para gerar um PDF consistente com o resultado apresentado.
     form_data = request.form
-    # Reconstruir 'dados' e 'tipo' a partir do form_data
     tipo = TipoRescisao(form_data["tipo_rescisao"])
 
-    # Simplificação: Recalcula as verbas e impostos
-    # A lógica completa de datas do `index` seria necessária para 100% de precisão
     dados = DadosEmpregado(
         salario=float(form_data["salario"]),
         meses_trabalhados_ferias=int(form_data["meses_trabalhados_ferias"]),
@@ -138,7 +133,7 @@ def export_rescisao_pdf():
     liquido = total_bruto + desconto_aviso - total_descontos_impostos
     resultado["Líquido a Receber"] = {"valor": liquido, "calculo": "..."}
 
-    html = render_template("rescisao_pdf.html", resultado=resultado)
+    html = render_template("pdf_rescisao.html", resultado=resultado)
     pdf = HTML(string=html).write_pdf()
     return Response(pdf, mimetype='application/pdf', headers={'Content-Disposition': 'attachment;filename=rescisao.pdf'})
 
@@ -151,10 +146,9 @@ def export_salario_mensal_pdf():
     
     resultado = calcular_salario_liquido(salario_bruto, num_dependentes, bonus_anual, va_vr_mensal)
 
-    html = render_template("salario_mensal_pdf.html", resultado=resultado)
+    html = render_template("pdf_salario_mensal.html", resultado=resultado)
     pdf = HTML(string=html).write_pdf()
     return Response(pdf, mimetype='application/pdf', headers={'Content-Disposition': 'attachment;filename=salario_mensal.pdf'})
 
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
