@@ -32,7 +32,7 @@ Siga os passos abaixo para executar a aplicação em seu ambiente.
 1.  **Clonar o repositório:**
     ```bash
     git clone <URL_DO_SEU_REPOSITORIO>
-    cd calculadora_rh/python
+    cd calculadora_rh/python_version
     ```
 
 2.  **(Opcional, mas recomendado) Criar um ambiente virtual:**
