@@ -1,272 +1,842 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Rescisão e Salário</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/2.30.0/date_fns.min.js"></script>
+    <title>Calculadora RH</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: #1e293b; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: var(--card); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        h1, h2 { color: var(--primary); }
-        .form-group { margin-bottom: 1.5rem; }
-        label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
-        input, select { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; padding: 1rem 2rem; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
-        button:hover { background: #1d4ed8; }
-        .resultado { margin-top: 2rem; padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #f1f5f9; }
-        .item-resultado { border-bottom: 1px solid #cbd5e1; padding: 0.5rem 0; }
-        .valor-negativo { color: #dc2626; }
-        .hidden { display: none; }
-        .info-calculo { font-size: 0.85rem; color: #64748b; font-style: italic; }
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        .table-striped>tbody>tr:nth-of-type(odd)>* {
+            --bs-table-accent-bg: #f8f9fa;
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: #005c2b;
+            background-color: #e9f7ef;
+        }
+
+        [data-bs-toggle="collapse"] {
+            cursor: pointer;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .printable-area, .printable-area * {
+                visibility: visible;
+            }
+
+            .printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
+
 <body>
-
-<div class="container">
-    <h1>Calculadora Trabalhista</h1>
-    
-    <div class="tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button onclick="showTab('rescisao')" style="flex:1">Rescisão</button>
-        <button onclick="showTab('mensal')" style="flex:1">Salário Mensal/PJ</button>
-    </div>
-
-    <section id="tab-rescisao">
-        <h2>Cálculo de Rescisão</h2>
-        <form id="formRescisao">
-            <div class="form-group">
-                <label>Salário Bruto (R$)</label>
-                <input type="number" id="salario" step="0.01" required>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark no-print">
+        <div class="container">
+            <a class="navbar-brand" href="#" onclick="showPage('page-home')">
+                <i class="fas fa-calculator"></i> Calculadora RH
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('page-rescisao-form')">Calculadora de Rescisão</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('page-salario-form')">Calculadora de Salário</a>
+                    </li>
+                </ul>
             </div>
-            <div class="form-group">
-                <label>Tipo de Rescisão</label>
-                <select id="tipo_rescisao">
-                    <option value="sem_justa_causa">Demissão sem Justa Causa</option>
-                    <option value="pedido_demissao">Pedido de Demissão</option>
-                    <option value="justa_causa">Justa Causa</option>
-                    <option value="acordo">Acordo Comum</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Data de Início</label>
-                <input type="date" id="data_inicio" required>
-            </div>
-            
-            <div id="div_padrao">
-                <div class="form-group">
-                    <label>Data de Afastamento</label>
-                    <input type="date" id="data_fim">
-                </div>
-                <div class="form-group">
-                    <label>Dias de Aviso Prévio Devido (Lei 12.506)</label>
-                    <input type="number" id="aviso_devido" value="30">
-                </div>
-                <div class="form-group">
-                    <label>Dias de Aviso Cumprido/Trabalhado</label>
-                    <input type="number" id="aviso_cumprido" value="0">
-                </div>
-            </div>
-
-            <div id="div_pedido" class="hidden">
-                <div class="form-group">
-                    <label>Data da Solicitação</label>
-                    <input type="date" id="data_solicitacao">
-                </div>
-                <label>Vai cumprir o aviso?</label>
-                <input type="radio" name="cumprira_aviso" value="sim" checked> Sim
-                <input type="radio" name="cumprira_aviso" value="nao"> Não
-            </div>
-
-            <div class="form-group">
-                <label>Dia do último pagamento (Ciclo Salarial)</label>
-                <input type="number" id="dia_pagamento" value="1" min="1" max="31">
-            </div>
-
-            <button type="submit">Calcular Rescisão</button>
-        </form>
-    </section>
-
-    <section id="tab-mensal" class="hidden">
-        <h2>Simulação Mensal e PJ</h2>
-        <form id="formMensal">
-            <div class="form-group">
-                <label>Salário Bruto (R$)</label>
-                <input type="number" id="m_salario" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label>Nº de Dependentes</label>
-                <input type="number" id="m_dependentes" value="0">
-            </div>
-            <div class="form-group">
-                <label>Bônus Anual Estimado (R$)</label>
-                <input type="number" id="m_bonus" value="0">
-            </div>
-            <div class="form-group">
-                <label>VA/VR Mensal (R$)</label>
-                <input type="number" id="m_vavr" value="0">
-            </div>
-            <button type="submit">Calcular Salário Líquido</button>
-        </form>
-    </section>
-
-    <div id="resultadoArea" class="resultado hidden">
-        <h3>Resultado Detalhado</h3>
-        <div id="resultadoConteudo"></div>
-    </div>
-</div>
-
-<script>
-// --- CONFIGURAÇÕES E TABELAS 2025 ---
-const TABELA_INSS = [
-    { limite: 1518.00, aliquota: 0.075 },
-    { limite: 2793.88, aliquota: 0.09 },
-    { limite: 4190.83, aliquota: 0.12 },
-    { limite: 8157.41, aliquota: 0.14 }
-];
-
-const TABELA_IRRF = [
-    { limite: 2428.80, aliquota: 0.0, deducao: 0.00 },
-    { limite: 2826.65, aliquota: 0.075, deducao: 182.16 },
-    { limite: 3751.05, aliquota: 0.15, deducao: 394.16 },
-    { limite: 4664.68, aliquota: 0.225, deducao: 675.49 },
-    { limite: Infinity, aliquota: 0.275, deducao: 908.73 }
-];
-
-// --- LÓGICA DE NAVEGAÇÃO ---
-function showTab(tab) {
-    document.getElementById('tab-rescisao').classList.toggle('hidden', tab !== 'rescisao');
-    document.getElementById('tab-mensal').classList.toggle('hidden', tab !== 'mensal');
-    document.getElementById('resultadoArea').classList.add('hidden');
-}
-
-document.getElementById('tipo_rescisao').addEventListener('change', function(e) {
-    const isPedido = e.target.value === 'pedido_demissao';
-    document.getElementById('div_pedido').classList.toggle('hidden', !isPedido);
-    document.getElementById('div_padrao').classList.toggle('hidden', isPedido);
-});
-
-// --- FUNÇÕES DE CÁLCULO (O "Calculos.py" convertido) ---
-
-function calcularInss(base) {
-    let inss = 0;
-    let limiteAnterior = 0;
-    let desc = `Cálculo INSS progressivo sobre R$ ${base.toFixed(2)}:<br>`;
-
-    for (const faixa of TABELA_INSS) {
-        if (base > limiteAnterior) {
-            let baseFaixa = Math.min(base, faixa.limite) - limiteAnterior;
-            let valorFaixa = baseFaixa * faixa.aliquota;
-            inss += valorFaixa;
-            desc += `- Até R$ ${faixa.limite}: R$ ${baseFaixa.toFixed(2)} x ${faixa.aliquota*100}% = R$ ${valorFaixa.toFixed(2)}<br>`;
-            limiteAnterior = faixa.limite;
-        }
-    }
-    return { valor: inss, calculo: desc };
-}
-
-function calcularIrrf(base, dependentes = 0) {
-    const baseIrrf = base - (dependentes * 189.59);
-    let taxa = 0, deducao = 0;
-    
-    for (const faixa of TABELA_IRRF) {
-        if (baseIrrf <= faixa.limite) {
-            taxa = faixa.aliquota;
-            deducao = faixa.deducao;
-            break;
-        }
-    }
-    const valor = Math.max(0, (baseIrrf * taxa) - deducao);
-    return { 
-        valor: valor, 
-        calculo: `Base R$ ${baseIrrf.toFixed(2)} (após dep.). (${baseIrrf.toFixed(2)} * ${taxa*100}%) - ${deducao}` 
-    };
-}
-
-// --- PROCESSAMENTO DOS FORMULÁRIOS ---
-
-document.getElementById('formRescisao').onsubmit = function(e) {
-    e.preventDefault();
-    const salario = parseFloat(document.getElementById('salario').value);
-    const tipo = document.getElementById('tipo_rescisao').value;
-    const dataInicio = new Date(document.getElementById('data_inicio').value);
-    let dataFim;
-
-    if (tipo === 'pedido_demissao') {
-        const dataSolicitacao = new Date(document.getElementById('data_solicitacao').value);
-        const cumprira = document.querySelector('input[name="cumprira_aviso"]:checked').value;
-        dataFim = cumprira === 'sim' ? dateFns.addDays(dataSolicitacao, 30) : dataSolicitacao;
-    } else {
-        dataFim = new Date(document.getElementById('data_fim').value);
-    }
-
-    // Cálculos Proporcionais Simplificados
-    const meses13 = dataFim.getMonth() + (dataFim.getDate() >= 15 ? 1 : 0);
-    const diffMeses = dateFns.differenceInMonths(dataFim, dataInicio);
-    
-    // Verbas
-    const saldoSalario = (salario / 30) * dataFim.getDate();
-    const decimoTerceiro = (salario / 12) * meses13;
-    const feriasProp = (salario / 12) * (diffMeses % 12);
-    const tercoFerias = (feriasProp + (diffMeses >= 12 ? salario : 0)) / 3;
-
-    let html = `
-        <div class="item-resultado">Saldo de Salário: <strong>R$ ${saldoSalario.toFixed(2)}</strong></div>
-        <div class="item-resultado">13º Proporcional: <strong>R$ ${decimoTerceiro.toFixed(2)}</strong></div>
-        <div class="item-resultado">Férias Proporcionais + 1/3: <strong>R$ ${(feriasProp + tercoFerias).toFixed(2)}</strong></div>
-    `;
-
-    // Impostos
-    const inss = calcularInss(saldoSalario).valor + calcularInss(decimoTerceiro).valor;
-    const totalBruto = saldoSalario + decimoTerceiro + feriasProp + tercoFerias;
-    
-    html += `
-        <div class="item-resultado valor-negativo">(-) INSS Estimado: R$ ${inss.toFixed(2)}</div>
-        <div class="item-resultado" style="font-size: 1.2rem; margin-top:10px;">
-            Total Líquido Estimado: <strong>R$ ${(totalBruto - inss).toFixed(2)}</strong>
         </div>
-    `;
+    </nav>
 
-    renderResultado(html);
-};
-
-document.getElementById('formMensal').onsubmit = function(e) {
-    e.preventDefault();
-    const bruto = parseFloat(document.getElementById('m_salario').value);
-    const dep = parseInt(document.getElementById('m_dependentes').value);
-    
-    const inss = calcularInss(bruto);
-    const irrf = calcularIrrf(bruto - inss.valor, dep);
-    const liquido = bruto - inss.valor - irrf.valor;
-
-    // Lógica PJ Sugerido (Baseado no seu Python)
-    const bonus = parseFloat(document.getElementById('m_bonus').value) || 0;
-    const vavr = parseFloat(document.getElementById('m_vavr').value) || 0;
-    const custoAnual = (bruto * 13.33) + (bruto * 0.08 * 12) + (vavr * 12) + bonus;
-    const pjSugerido = custoAnual / 12;
-
-    let html = `
-        <div class="item-resultado">Salário Bruto: R$ ${bruto.toFixed(2)}</div>
-        <div class="item-resultado valor-negativo">(-) INSS: R$ ${inss.valor.toFixed(2)}</div>
-        <div class="item-resultado valor-negativo">(-) IRRF: R$ ${irrf.valor.toFixed(2)}</div>
-        <div class="item-resultado"><strong>Salário Líquido: R$ ${liquido.toFixed(2)}</strong></div>
-        <hr>
-        <div class="item-resultado" style="color: var(--primary)">
-            <strong>Sugestão de Valor PJ: R$ ${pjSugerido.toFixed(2)} / mês</strong>
-            <div class="info-calculo">Considera 13º, Férias, FGTS, VA/VR e Bônus anualizados.</div>
+    <main class="container mt-4">
+        <!-- PÁGINA INICIAL -->
+        <div id="page-home" class="page active">
+            <div class="p-5 mb-4 bg-light rounded-3">
+                <div class="container-fluid py-5">
+                    <h1 class="display-5 fw-bold">Calculadora RH</h1>
+                    <p class="col-md-8 fs-4">Uma ferramenta para simplificar cálculos trabalhistas. Escolha uma das
+                        opções abaixo para começar.</p>
+                    <button class="btn btn-primary btn-lg" type="button" onclick="showPage('page-rescisao-form')">
+                        <i class="fas fa-file-contract"></i> Calcular Rescisão
+                    </button>
+                    <button class="btn btn-success btn-lg" type="button" onclick="showPage('page-salario-form')">
+                        <i class="fas fa-money-bill-wave"></i> Calcular Salário Líquido
+                    </button>
+                </div>
+            </div>
         </div>
-    `;
-    renderResultado(html);
-};
 
-function renderResultado(html) {
-    const res = document.getElementById('resultadoArea');
-    const cont = document.getElementById('resultadoConteudo');
-    res.classList.remove('hidden');
-    cont.innerHTML = html;
-    res.scrollIntoView({ behavior: 'smooth' });
-}
-</script>
+        <!-- PÁGINA FORMULÁRIO RESCISÃO -->
+        <div id="page-rescisao-form" class="page">
+            <h2>Calculadora de Rescisão</h2>
+            <form id="form-rescisao" class="card p-4 mt-3">
+                <div class="mb-3">
+                    <label class="form-label">Tipo de rescisão</label>
+                    <select class="form-select" name="tipo_rescisao" id="tipo_rescisao">
+                        <option value="sem_justa_causa">Demissão sem justa causa</option>
+                        <option value="pedido_demissao">Pedido de demissão</option>
+                        <option value="justa_causa">Demissão por justa causa</option>
+                        <option value="acordo">Acordo entre as partes</option>
+                        <option value="termino_contrato">Término de contrato de experiência</option>
+                    </select>
+                </div>
 
+                <div class="mb-3">
+                    <label>Salário bruto mensal</label>
+                    <input type="number" step="0.01" class="form-control" name="salario" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Dia do mês que a empresa paga o salário</label>
+                    <input type="number" class="form-control" name="dia_pagamento" min="1" max="31" value="5" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Data de início do contrato</label>
+                        <input type="date" class="form-control" name="data_inicio" required>
+                    </div>
+                    <div class="col-md-6 mb-3" id="data_fim_div">
+                        <label>Data do último dia trabalhado</label>
+                        <input type="date" class="form-control" name="data_fim" required>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div id="aviso_pedido_demissao" style="display: none;">
+                    <h5>Aviso Prévio (Pedido de Demissão)</h5>
+                    <div class="mb-3">
+                        <label>Data da solicitação da demissão</label>
+                        <input type="date" class="form-control" name="data_solicitacao_demissao"
+                            id="data_solicitacao_demissao">
+                    </div>
+                    <div class="mb-3">
+                        <label>Irá cumprir o aviso prévio de 30 dias?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="cumprira_aviso" id="cumprira_sim"
+                                value="sim" checked>
+                            <label class="form-check-label" for="cumprira_sim">Sim, cumprirei integralmente</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="cumprira_aviso" id="cumprira_nao"
+                                value="nao">
+                            <label class="form-check-label" for="cumprira_nao">Não, sairei antes</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="aviso_sem_justa_causa">
+                     <h5>Aviso Prévio (Demissão sem Justa Causa)</h5>
+                     <div class="mb-3">
+                        <label>Tipo de Aviso Prévio</label>
+                         <select class="form-select" name="tipo_aviso_sem_justa_causa" id="tipo_aviso_sem_justa_causa">
+                            <option value="indenizado">Indenizado (saída imediata)</option>
+                            <option value="trabalhado">Trabalhado</option>
+                        </select>
+                     </div>
+                </div>
+
+                <div class="form-check my-3">
+                    <input class="form-check-input" type="checkbox" name="tem_ferias_vencidas" id="tem_ferias_vencidas">
+                    <label class="form-check-label" for="tem_ferias_vencidas">
+                        Possui férias vencidas e não gozadas?
+                    </label>
+                </div>
+
+                <button class="btn btn-primary mt-4">Calcular</button>
+            </form>
+        </div>
+
+        <!-- PÁGINA RESULTADO RESCISÃO -->
+        <div id="page-rescisao-resultado" class="page printable-area">
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                <h2>Resultado da Rescisão</h2>
+                <button type="button" class="btn btn-success" onclick="window.print()">
+                    <i class="fas fa-print"></i> Imprimir / Salvar PDF
+                </button>
+            </div>
+            <div id="resultado-rescisao-content"></div>
+            <div class="mt-4 no-print">
+                <button onclick="showPage('page-rescisao-form')" class="btn btn-secondary">Novo cálculo de rescisão</button>
+                <button onclick="showPage('page-home')" class="btn btn-outline-secondary">Voltar ao Início</button>
+            </div>
+        </div>
+
+
+        <!-- PÁGINA SALÁRIO MENSAL -->
+        <div id="page-salario-form" class="page">
+            <h2>Calculadora de Salário Mensal</h2>
+            <div class="row">
+                <div class="col-lg-5">
+                    <form id="form-salario" class="card p-4 mt-3">
+                        <div class="mb-3">
+                            <label for="salario_bruto" class="form-label">Salário Bruto Mensal (CLT)</label>
+                            <input type="number" step="0.01" class="form-control" name="salario_bruto" id="salario_bruto" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="num_dependentes" class="form-label">Número de dependentes (para IRRF)</label>
+                            <input type="number" class="form-control" name="num_dependentes" id="num_dependentes" value="0">
+                        </div>
+                        <hr>
+                        <p class="text-muted">Para a comparação CLT x PJ, informe os benefícios anuais:</p>
+                        <div class="mb-3">
+                            <label for="va_vr_mensal" class="form-label">Valor Mensal (VA/VR)</label>
+                            <input type="number" step="0.01" class="form-control" name="va_vr_mensal" id="va_vr_mensal" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="bonus_anual" class="form-label">Bônus / PLR (Valor Anual)</label>
+                            <input type="number" step="0.01" class="form-control" name="bonus_anual" id="bonus_anual" value="0">
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Calcular Salário Líquido e Comparar com PJ</button>
+                    </form>
+                </div>
+                <div class="col-lg-7">
+                    <div id="resultado-salario-content" class="mt-3 printable-area">
+                         <div class="card p-4" id="salario-placeholder">
+                            <h3 class="text-center text-muted">Preencha os dados ao lado para ver o resultado.</h3>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="container text-center text-muted py-4 mt-5 no-print">
+        <p>Calculadora RH &copy; 2026</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // ===================================================================================
+        // LÓGICA DE NAVEGAÇÃO E CONTROLE DA UI
+        // ===================================================================================
+
+        const pages = document.querySelectorAll('.page');
+
+        function showPage(pageId) {
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            const newPage = document.getElementById(pageId);
+            if (newPage) {
+                newPage.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Navegação inicial
+            showPage('page-home');
+
+            // Lógica do formulário de rescisão
+            const tipoRescisaoSelect = document.getElementById('tipo_rescisao');
+            const avisoPedidoDemissaoDiv = document.getElementById('aviso_pedido_demissao');
+            const avisoSemJustaCausaDiv = document.getElementById('aviso_sem_justa_causa');
+            const dataFimInput = document.querySelector('input[name="data_fim"]');
+            const dataFimDiv = document.getElementById('data_fim_div');
+            const dataSolicitacaoInput = document.getElementById('data_solicitacao_demissao');
+
+            tipoRescisaoSelect.addEventListener('change', (e) => {
+                const tipo = e.target.value;
+                avisoPedidoDemissaoDiv.style.display = tipo === 'pedido_demissao' ? 'block' : 'none';
+                avisoSemJustaCausaDiv.style.display = tipo === 'sem_justa_causa' ? 'block' : 'none';
+                dataFimInput.required = tipo !== 'pedido_demissao';
+                dataFimDiv.style.display = tipo === 'pedido_demissao' ? 'none' : 'block';
+                dataSolicitacaoInput.required = tipo === 'pedido_demissao';
+            });
+
+            document.querySelectorAll('input[name="cumprira_aviso"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'sim') {
+                        dataFimDiv.style.display = 'none';
+                        dataFimInput.required = false;
+                    } else {
+                        dataFimDiv.style.display = 'block';
+                        dataFimInput.required = true;
+                        dataFimDiv.querySelector('label').textContent = 'Se não, qual a data que pretende sair?';
+                    }
+                });
+            });
+
+            // Disparar o change para configurar o estado inicial
+            tipoRescisaoSelect.dispatchEvent(new Event('change'));
+            document.querySelector('input[name="cumprira_aviso"]:checked').dispatchEvent(new Event('change'));
+
+            // Handlers de submit dos formulários
+            document.getElementById('form-rescisao').addEventListener('submit', handleRescisaoSubmit);
+            document.getElementById('form-salario').addEventListener('submit', handleSalarioSubmit);
+        });
+
+
+        // ===================================================================================
+        // LÓGICA DE CÁLCULO (JAVASCRIPT)
+        // ===================================================================================
+
+        const TipoRescisao = {
+            SEM_JUSTA_CAUSA: "sem_justa_causa",
+            PEDIDO_DEMISSAO: "pedido_demissao",
+            JUSTA_CAUSA: "justa_causa",
+            ACORDO: "acordo",
+            TERMINO_CONTRATO: "termino_contrato"
+        };
+
+        // Tabelas de 2025 (exemplo) - confirmar valores oficiais
+        const TABELA_INSS = [
+            { limite: 1518.00, aliquota: 0.075 },
+            { limite: 2793.88, aliquota: 0.09 },
+            { limite: 4190.83, aliquota: 0.12 },
+            { limite: 8157.41, aliquota: 0.14 },
+        ];
+
+        const TABELA_IRRF = [
+            { limite: 2428.80, aliquota: 0.0, deducao: 0.00 },
+            { limite: 2826.65, aliquota: 0.075, deducao: 182.16 },
+            { limite: 3751.05, aliquota: 0.15, deducao: 394.16 },
+            { limite: 4664.68, aliquota: 0.225, deducao: 675.49 },
+            { limite: Infinity, aliquota: 0.275, deducao: 908.73 },
+        ];
+
+        const DEDUCAO_DEPENDENTE_IRRF = 189.59;
+
+        // Funções de utilidade de data
+        function parseDate(dateString) {
+            // Adiciona T00:00:00 para evitar problemas de fuso horário
+            return new Date(dateString + 'T00:00:00');
+        }
+
+        function addMonths(date, months) {
+            const d = new Date(date);
+            d.setMonth(d.getMonth() + months);
+            return d;
+        }
+
+        function diffInMonths(date1, date2) {
+            let months;
+            months = (date2.getFullYear() - date1.getFullYear()) * 12;
+            months -= date1.getMonth();
+            months += date2.getMonth();
+            return months <= 0 ? 0 : months;
+        }
+
+        function diffInDays(date1, date2) {
+            const oneDay = 24 * 60 * 60 * 1000;
+            return Math.round(Math.abs((date1 - date2) / oneDay));
+        }
+
+        // Funções de cálculo de verbas
+        function saldo_salario(salario, dias) {
+            const valor = (salario / 30) * dias;
+            const calculo = `(Salário R$ ${salario.toFixed(2)} / 30 dias) * ${dias} dias trabalhados.`;
+            return { valor, calculo };
+        }
+
+        function aviso_previo(salario, devido, cumprido, tipo_rescisao) {
+            let dias_a_pagar = devido - cumprido;
+            const valor_dia = salario / 30;
+            let valor = valor_dia * dias_a_pagar;
+            let calculo = "";
+
+            if (tipo_rescisao === TipoRescisao.PEDIDO_DEMISSAO) {
+                if (dias_a_pagar > 0) { // Apenas se não cumpriu tudo
+                    valor *= -1;
+                    calculo = `Desconto de ${Math.abs(dias_a_pagar)} dias de aviso não cumprido. (R$ ${salario.toFixed(2)} / 30) * ${Math.abs(dias_a_pagar)}.`;
+                } else {
+                    valor = 0;
+                    calculo = "Aviso prévio cumprido integralmente.";
+                }
+            } else {
+                valor = Math.max(0, valor);
+                if (valor > 0) {
+                    calculo = `Aviso indenizado de ${dias_a_pagar} dias. (R$ ${salario.toFixed(2)} / 30) * ${dias_a_pagar}.`;
+                } else {
+                    calculo = "Aviso prévio trabalhado/cumprido.";
+                }
+            }
+            return { valor, calculo };
+        }
+
+        function ferias_vencidas(salario, periodos, dobro) {
+            if (periodos <= 0) {
+                return { valor: 0, calculo: "Nenhum período de férias vencidas." };
+            }
+            let base = salario * periodos;
+            let calculo_base = `Salário (R$ ${salario.toFixed(2)}) * ${periodos} período(s)`;
+            if (dobro) {
+                base *= 2;
+                calculo_base += " (em dobro)";
+            }
+            const terco = base / 3;
+            const valor = base + terco;
+            const calculo = `${calculo_base} + 1/3 sobre o valor (R$ ${terco.toFixed(2)}).`;
+            return { valor, calculo };
+        }
+
+        function ferias_proporcionais(salario, meses) {
+            const meses_validos = meses % 12;
+            if (meses_validos === 0) {
+                return { valor: 0, calculo: "Nenhum mês para férias proporcionais." };
+            }
+            const base = (salario / 12) * meses_validos;
+            const terco = base / 3;
+            const valor = base + terco;
+            const calculo = `(${meses_validos}/12 avos de R$ ${salario.toFixed(2)}) + 1/3 sobre o valor (R$ ${terco.toFixed(2)}).`;
+            return { valor, calculo };
+        }
+
+        function decimo_terceiro(salario, meses) {
+            const valor = (salario / 12) * meses;
+            const calculo = `${meses}/12 avos de R$ ${salario.toFixed(2)}.`;
+            return { valor, calculo };
+        }
+
+        // Funções de cálculo de impostos
+        function calcular_inss(base_calculo, tipo_verba = "") {
+            let inss = 0.0;
+            let limite_anterior = 0.0;
+            let calculo_str = `Cálculo progressivo sobre a base (${tipo_verba}) de R$ ${base_calculo.toFixed(2)}:\n`;
+
+            for (const faixa of TABELA_INSS) {
+                const limite = faixa.limite;
+                const aliquota = faixa.aliquota;
+
+                if (base_calculo > limite_anterior) {
+                    const base_faixa = Math.min(base_calculo, limite) - limite_anterior;
+                    const valor_faixa = base_faixa * aliquota;
+                    inss += valor_faixa;
+                    calculo_str += `  - Faixa até R$ ${limite.toFixed(2)}: (R$ ${base_faixa.toFixed(2)} * ${aliquota * 100}%) = R$ ${valor_faixa.toFixed(2)}\n`;
+                    limite_anterior = limite;
+                } else {
+                    break;
+                }
+            }
+            return { valor: parseFloat(inss.toFixed(2)), calculo: calculo_str.trim() };
+        }
+
+        function calcular_irrf(base_calculo, num_dependentes = 0, tipo_verba = "") {
+            const deducao_dependentes = DEDUCAO_DEPENDENTE_IRRF * num_dependentes;
+            const base_irrf = base_calculo - deducao_dependentes;
+
+            let aliquota = 0.0, deducao = 0.0;
+            for (const faixa of TABELA_IRRF) {
+                if (base_irrf <= faixa.limite) {
+                    aliquota = faixa.aliquota;
+                    deducao = faixa.deducao;
+                    break;
+                }
+            }
+
+            const valor = (base_irrf * aliquota) - deducao;
+            const calculo = `Base de cálculo (${tipo_verba}): R$ ${base_calculo.toFixed(2)}. Base p/ IRRF (já deduzido INSS e ${num_dependentes} dependente(s)): R$ ${base_irrf.toFixed(2)}. Fórmula: (R$ ${base_irrf.toFixed(2)} * ${aliquota * 100}%) - R$ ${deducao.toFixed(2)}.`;
+            return { valor: Math.max(0, parseFloat(valor.toFixed(2))), calculo };
+        }
+
+        function calcular_impostos_rescisao(verbas, num_dependentes) {
+            const base_inss_mes = verbas["Saldo de salário"]?.valor || 0;
+            const base_inss_13 = verbas["13º salário proporcional"]?.valor || 0;
+
+            const inss_salario_detalhe = calcular_inss(base_inss_mes, "Saldo Salário");
+            const inss_13_detalhe = calcular_inss(base_inss_13, "13º");
+
+            // IRRF sobre 13º
+            const base_irrf_13 = base_inss_13 - inss_13_detalhe.valor;
+            const irrf_13_detalhe = calcular_irrf(base_irrf_13, num_dependentes, "13º Salário");
+
+            // IRRF sobre outras verbas
+            const saldo_salario_valor = verbas["Saldo de salário"]?.valor || 0;
+            const ferias_vencidas_valor = verbas["Férias vencidas"]?.valor || 0;
+            const ferias_proporcionais_valor = verbas["Férias proporcionais"]?.valor || 0;
+            const total_ferias = ferias_vencidas_valor + ferias_proporcionais_valor;
+
+            const base_calculo_irrf_mes = saldo_salario_valor + total_ferias;
+            const base_irrf_mes = base_calculo_irrf_mes - inss_salario_detalhe.valor;
+
+            const tipo_verba_detalhado = `Saldo Salário (R$ ${saldo_salario_valor.toFixed(2)}) + Férias (R$ ${total_ferias.toFixed(2)})`;
+            const irrf_mes_detalhe = calcular_irrf(base_irrf_mes, num_dependentes, tipo_verba_detalhado);
+
+            const descontos = {};
+            if (inss_salario_detalhe.valor > 0) descontos["(-) Desconto INSS sobre Saldo Salário"] = inss_salario_detalhe;
+            if (inss_13_detalhe.valor > 0) descontos["(-) Desconto INSS sobre 13º"] = inss_13_detalhe;
+            if (irrf_mes_detalhe.valor > 0) descontos["(-) Desconto IRRF sobre Salário/Férias"] = irrf_mes_detalhe;
+            if (irrf_13_detalhe.valor > 0) descontos["(-) Desconto IRRF sobre 13º"] = irrf_13_detalhe;
+
+            const total_inss = inss_salario_detalhe.valor + inss_13_detalhe.valor;
+            const total_irrf = irrf_13_detalhe.valor + irrf_mes_detalhe.valor;
+
+            if (Object.keys(descontos).length > 0) {
+                descontos["Total de Descontos"] = { valor: total_inss + total_irrf, calculo: "Soma de todos os descontos de INSS e IRRF." };
+            }
+
+            return descontos;
+        }
+
+
+        // Funções principais de cálculo
+        function calcular_rescisao(dados, tipo) {
+            let r = {};
+
+            r["Saldo de salário"] = saldo_salario(dados.salario, dados.dias_trabalhados_saldo);
+
+            if (tipo !== TipoRescisao.JUSTA_CAUSA) {
+                r["Férias vencidas"] = ferias_vencidas(dados.salario, dados.ferias_vencidas, dados.ferias_em_dobro);
+                r["Férias proporcionais"] = ferias_proporcionais(dados.salario, dados.meses_trabalhados_ferias);
+                r["13º salário proporcional"] = decimo_terceiro(dados.salario, dados.meses_trabalhados_13);
+            } else {
+                r["Férias vencidas"] = { valor: 0, calculo: "Não aplicável para justa causa." };
+                r["Férias proporcionais"] = { valor: 0, calculo: "Não aplicável para justa causa." };
+                r["13º salário proporcional"] = { valor: 0, calculo: "Não aplicável para justa causa." };
+            }
+
+            // Aviso prévio é tratado de forma diferente para cada tipo
+            if (tipo === TipoRescisao.PEDIDO_DEMISSAO || tipo === TipoRescisao.SEM_JUSTA_CAUSA) {
+                 r["Aviso prévio"] = aviso_previo(dados.salario, dados.dias_aviso_devido, dados.dias_aviso_cumprido, tipo);
+            } else {
+                 r["Aviso prévio"] = { valor: 0, calculo: "Não aplicável para este tipo de rescisão." };
+            }
+
+            const verbas_brutas = Object.fromEntries(Object.entries(r).filter(([_, v]) => v.valor !== 0));
+
+            const total_bruto = Object.values(verbas_brutas).reduce((sum, v) => sum + (v.valor > 0 ? v.valor : 0), 0);
+            verbas_brutas["Total Bruto"] = { valor: total_bruto, calculo: "Soma de todas as verbas rescisórias." };
+
+            return verbas_brutas;
+        }
+
+        function sugerir_salario_pj(salario_bruto, bonus_anual, va_vr_mensal) {
+            const salario_anual = salario_bruto * 12;
+            const decimo_terceiro = salario_bruto;
+            const terco_ferias = salario_bruto / 3;
+            const fgts_anual = salario_anual * 0.08;
+            const va_vr_anual = va_vr_mensal * 12;
+
+            const total_anual_clt = salario_anual + decimo_terceiro + terco_ferias + fgts_anual + va_vr_anual + bonus_anual;
+            const salario_pj_sugerido = total_anual_clt / 12;
+
+            const calculo = `
+                Salário Anual (12x): R$ ${salario_anual.toFixed(2)}\n
+                + 13º Salário: R$ ${decimo_terceiro.toFixed(2)}\n
+                + 1/3 de Férias: R$ ${terco_ferias.toFixed(2)}\n
+                + FGTS Anual (8%): R$ ${fgts_anual.toFixed(2)}\n
+                + VA/VR Anual (12x): R$ ${va_vr_anual.toFixed(2)}\n
+                + Bônus/PLR Anual: R$ ${bonus_anual.toFixed(2)}\n
+                --------------------------------------------------\n
+                = Total Anualizado CLT: R$ ${total_anual_clt.toFixed(2)}\n
+                ÷ 12 meses\n
+                --------------------------------------------------\n
+                = Salário PJ Mensal Sugerido: R$ ${salario_pj_sugerido.toFixed(2)}
+            `;
+            return { valor: salario_pj_sugerido, calculo };
+        }
+
+        function calcular_salario_liquido(salario_bruto, num_dependentes, bonus_anual, va_vr_mensal) {
+            const inss_detalhe = calcular_inss(salario_bruto, "Salário Bruto");
+            const inss_valor = inss_detalhe.valor;
+
+            const base_calculo_irrf = salario_bruto - inss_valor;
+            const irrf_detalhe = calcular_irrf(base_calculo_irrf, num_dependentes, "Salário Bruto");
+            const irrf_valor = irrf_detalhe.valor;
+
+            const salario_liquido = salario_bruto - inss_valor - irrf_valor;
+
+            const sugestao_pj = sugerir_salario_pj(salario_bruto, bonus_anual, va_vr_mensal);
+
+            const valor_hora_clt = salario_bruto / 220;
+            const valor_hora_pj = sugestao_pj.valor / 168;
+
+            return {
+                "Salário Bruto": { valor: salario_bruto, calculo: "Valor base informado." },
+                "(-) Desconto INSS": inss_detalhe,
+                "(-) Desconto IRRF": irrf_detalhe,
+                "Salário Líquido": {
+                    valor: salario_liquido,
+                    calculo: `Salário Bruto (R$ ${salario_bruto.toFixed(2)}) - INSS (R$ ${inss_valor.toFixed(2)}) - IRRF (R$ ${irrf_valor.toFixed(2)})`,
+                },
+                "Sugestão Salário PJ": sugestao_pj,
+                "Valores por Hora": {
+                    clt: {
+                        valor: valor_hora_clt,
+                        calculo: `Salário Bruto (R$ ${salario_bruto.toFixed(2)}) ÷ 220 horas`,
+                    },
+                    pj: {
+                        valor: valor_hora_pj,
+                        calculo: `Salário PJ (R$ ${sugestao_pj.valor.toFixed(2)}) ÷ 168 horas`
+                    },
+                },
+            };
+        }
+
+        // ===================================================================================
+        // HANDLERS DE SUBMIT E RENDERIZAÇÃO
+        // ===================================================================================
+
+        function handleRescisaoSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            const tipo = data.tipo_rescisao;
+            const data_inicio = parseDate(data.data_inicio);
+            let data_fim;
+
+            let dias_aviso_devido = 0;
+            let dias_aviso_cumprido = 0;
+
+            if (tipo === TipoRescisao.PEDIDO_DEMISSAO) {
+                const data_solicitacao = parseDate(data.data_solicitacao_demissao);
+                dias_aviso_devido = 30;
+                if (data.cumprira_aviso === 'sim') {
+                    dias_aviso_cumprido = 30;
+                    data_fim = new Date(data_solicitacao);
+                    data_fim.setDate(data_fim.getDate() + 30);
+                } else {
+                    data_fim = parseDate(data.data_fim);
+                    dias_aviso_cumprido = diffInDays(data_solicitacao, data_fim);
+                    dias_aviso_cumprido = Math.max(0, Math.min(dias_aviso_cumprido, 30));
+                }
+            } else {
+                data_fim = parseDate(data.data_fim);
+                if (tipo === TipoRescisao.SEM_JUSTA_CAUSA) {
+                    const anos_trabalhados = Math.floor(diffInDays(data_inicio, data_fim) / 365);
+                    dias_aviso_devido = 30 + (Math.min(20, anos_trabalhados) * 3); // Limite de 90 dias
+                    if (data.tipo_aviso_sem_justa_causa === 'trabalhado') {
+                        dias_aviso_cumprido = dias_aviso_devido;
+                    } else {
+                        dias_aviso_cumprido = 0;
+                    }
+                }
+            }
+
+            const dia_pagamento = parseInt(data.dia_pagamento);
+            let data_inicio_saldo;
+            if (data_fim.getDate() >= dia_pagamento) {
+                data_inicio_saldo = new Date(data_fim.getFullYear(), data_fim.getMonth(), dia_pagamento);
+            } else {
+                data_inicio_saldo = new Date(data_fim.getFullYear(), data_fim.getMonth() - 1, dia_pagamento);
+            }
+            const dias_trabalhados_saldo = diffInDays(data_inicio_saldo, data_fim) + 1;
+
+            let meses_para_13 = data_fim.getMonth() + 1;
+            if (data_fim.getDate() < 15) {
+                meses_para_13 -= 1;
+            }
+            if (data_inicio.getFullYear() === data_fim.getFullYear()) {
+                meses_para_13 -= data_inicio.getMonth();
+                if (data_inicio.getDate() > 15) {
+                    meses_para_13 -= 1;
+                }
+            }
+
+            const meses_trabalhados_ferias = diffInMonths(data_inicio, data_fim) + (data_fim.getDate() >= data_inicio.getDate() ? 1 : 0);
+
+            const dadosEmpregado = {
+                salario: parseFloat(data.salario),
+                meses_trabalhados_ferias: meses_trabalhados_ferias,
+                meses_trabalhados_13: Math.max(0, meses_para_13),
+                dias_trabalhados_saldo: dias_trabalhados_saldo,
+                dias_aviso_devido: dias_aviso_devido,
+                dias_aviso_cumprido: dias_aviso_cumprido,
+                ferias_vencidas: data.tem_ferias_vencidas ? 1 : 0,
+                ferias_em_dobro: false, // Simplificado, pode ser adicionado no form
+            };
+
+            const verbas = calcular_rescisao(dadosEmpregado, tipo);
+            const impostos = calcular_impostos_rescisao(verbas, 0); // Num dependentes simplificado para 0
+
+            const resultado = { ...verbas, ...impostos };
+            const total_bruto = verbas["Total Bruto"]?.valor || 0;
+            const total_descontos_impostos = impostos["Total de Descontos"]?.valor || 0;
+            const desconto_aviso = verbas["Aviso prévio"]?.valor < 0 ? verbas["Aviso prévio"].valor : 0;
+            const liquido = total_bruto + desconto_aviso - total_descontos_impostos;
+
+            resultado["Líquido a Receber"] = {
+                valor: liquido,
+                calculo: `Total Bruto (R$ ${total_bruto.toFixed(2)}) - Descontos (R$ ${(total_descontos_impostos + Math.abs(desconto_aviso)).toFixed(2)})`
+            };
+
+            renderRescisaoResult(resultado);
+            showPage('page-rescisao-resultado');
+        }
+
+        function handleSalarioSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const salario_bruto = parseFloat(formData.get("salario_bruto") || 0);
+            const num_dependentes = parseInt(formData.get("num_dependentes") || 0);
+            const bonus_anual = parseFloat(formData.get("bonus_anual") || 0);
+            const va_vr_mensal = parseFloat(formData.get("va_vr_mensal") || 0);
+
+            if (salario_bruto > 0) {
+                const resultado = calcular_salario_liquido(salario_bruto, num_dependentes, bonus_anual, va_vr_mensal);
+                renderSalarioResult(resultado);
+            }
+        }
+
+        function renderRescisaoResult(resultado) {
+            const container = document.getElementById('resultado-rescisao-content');
+
+            let verbasHtml = '<table class="table table-striped mt-4"><caption>Verbas Rescisórias (Recebimentos)</caption><thead class="table-success"><tr><th>Verba</th><th class="text-end">Valor (R$)</th></tr></thead><tbody>';
+            for (const [item, data] of Object.entries(resultado)) {
+                if (data.valor > 0 && !item.includes('Total') && !item.includes('Líquido') && !item.includes('Desconto')) {
+                    verbasHtml += `
+                        <tr data-bs-toggle="collapse" href="#collapse-v-${item.replace(/\s/g, '')}" role="button">
+                            <td><strong>${item} <i class="fas fa-info-circle text-muted"></i></strong></td>
+                            <td class="text-end"><strong>${data.valor.toFixed(2)}</strong></td>
+                        </tr>
+                        <tr class="collapse" id="collapse-v-${item.replace(/\s/g, '')}">
+                            <td colspan="2" class="p-3" style="background-color: #e9f7ef;"><small><strong>Como chegamos neste valor:</strong><br><pre class="mb-0">${data.calculo}</pre></small></td>
+                        </tr>`;
+                }
+            }
+            verbasHtml += `
+                <tr class="table-light">
+                    <td><strong>Total Bruto</strong></td>
+                    <td class="text-end"><strong>${(resultado['Total Bruto']?.valor || 0).toFixed(2)}</strong></td>
+                </tr>
+            </tbody></table>`;
+
+            let descontosHtml = '<table class="table table-striped mt-4"><caption>Descontos</caption><thead class="table-danger"><tr><th>Desconto</th><th class="text-end">Valor (R$)</th></tr></thead><tbody>';
+            let totalDescontosFinal = 0;
+            for (const [item, data] of Object.entries(resultado)) {
+                if ((data.valor < 0 && item.includes('Aviso')) || (item.includes('Desconto') && !item.includes('Total'))) {
+                    totalDescontosFinal += Math.abs(data.valor);
+                    descontosHtml += `
+                        <tr data-bs-toggle="collapse" href="#collapse-d-${item.replace(/\s/g, '')}" role="button">
+                            <td><strong>${item.replace('(-)', '').trim()} <i class="fas fa-info-circle text-muted"></i></strong></td>
+                            <td class="text-end"><strong>${data.valor.toFixed(2)}</strong></td>
+                        </tr>
+                        <tr class="collapse" id="collapse-d-${item.replace(/\s/g, '')}">
+                            <td colspan="2" class="p-3" style="background-color: #fbe9eb;"><small><strong>Como chegamos neste valor:</strong><br><pre class="mb-0">${data.calculo}</pre></small></td>
+                        </tr>`;
+                }
+            }
+            descontosHtml += `
+                <tr class="table-light">
+                    <td><strong>Total de Descontos</strong></td>
+                    <td class="text-end"><strong>-${totalDescontosFinal.toFixed(2)}</strong></td>
+                </tr>
+            </tbody></table>`;
+
+            const liquidoHtml = `
+                <div class="alert alert-primary text-center mt-4">
+                    <h3>Líquido a Receber: R$ ${(resultado['Líquido a Receber']?.valor || 0).toFixed(2)}</h3>
+                </div>`;
+
+            container.innerHTML = verbasHtml + descontosHtml + liquidoHtml;
+        }
+
+        function renderSalarioResult(resultado) {
+            const container = document.getElementById('resultado-salario-content');
+            document.getElementById('salario-placeholder')?.remove();
+
+            const salarioBruto = resultado['Salário Bruto'].valor;
+            const inss = resultado['(-) Desconto INSS'];
+            const irrf = resultado['(-) Desconto IRRF'];
+            const salarioLiquido = resultado['Salário Líquido'];
+            const sugestaoPj = resultado['Sugestão Salário PJ'];
+            const valoresHora = resultado['Valores por Hora'];
+
+            container.innerHTML = `
+                <div class="card p-4 mb-3">
+                    <h3 class="mb-3">Demonstrativo de Pagamento (CLT)</h3>
+                    <table class="table">
+                        <tr>
+                            <td>Salário Bruto</td>
+                            <td class="text-end">R$ ${salarioBruto.toFixed(2)}</td>
+                        </tr>
+                        <tr class="text-danger" data-bs-toggle="collapse" href="#collapse-inss-sal" role="button">
+                            <td>(-) Desconto INSS <i class="fas fa-info-circle text-muted"></i></td>
+                            <td class="text-end">- R$ ${inss.valor.toFixed(2)}</td>
+                        </tr>
+                        <tr class="collapse" id="collapse-inss-sal"><td colspan="2" class="p-3" style="background-color: #fbe9eb;"><small><pre>${inss.calculo}</pre></small></td></tr>
+                        <tr class="text-danger" data-bs-toggle="collapse" href="#collapse-irrf-sal" role="button">
+                            <td>(-) Desconto IRRF <i class="fas fa-info-circle text-muted"></i></td>
+                            <td class="text-end">- R$ ${irrf.valor.toFixed(2)}</td>
+                        </tr>
+                        <tr class="collapse" id="collapse-irrf-sal"><td colspan="2" class="p-3" style="background-color: #fbe9eb;"><small><pre>${irrf.calculo}</pre></small></td></tr>
+                        <tr class="fw-bold table-success">
+                            <td>Salário Líquido a Receber</td>
+                            <td class="text-end">R$ ${salarioLiquido.valor.toFixed(2)}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="card p-4 mb-3">
+                    <h3 class="mb-3">Comparativo CLT x PJ</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-user-tie"></i> Modelo CLT</h4>
+                            <p><strong>Salário Líquido: R$ ${salarioLiquido.valor.toFixed(2)}</strong></p>
+                            <p class="text-muted" data-bs-toggle="collapse" href="#collapse-clt-hora" role="button">
+                                Valor/Hora: R$ ${valoresHora.clt.valor.toFixed(2)} <i class="fas fa-info-circle"></i>
+                            </p>
+                            <div class="collapse" id="collapse-clt-hora"><small><pre>${valoresHora.clt.calculo}</pre></small></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-briefcase"></i> Modelo PJ</h4>
+                            <p class="text-success" data-bs-toggle="collapse" href="#collapse-pj-sugestao" role="button">
+                                <strong>Salário Sugerido: R$ ${sugestaoPj.valor.toFixed(2)}</strong> <i class="fas fa-info-circle"></i>
+                            </p>
+                             <div class="collapse" id="collapse-pj-sugestao"><small><pre>${sugestaoPj.calculo}</pre></small></div>
+                            <p class="text-muted" data-bs-toggle="collapse" href="#collapse-pj-hora" role="button">
+                                Valor/Hora: R$ ${valoresHora.pj.valor.toFixed(2)} <i class="fas fa-info-circle"></i>
+                            </p>
+                            <div class="collapse" id="collapse-pj-hora"><small><pre>${valoresHora.pj.calculo}</pre></small></div>
+                        </div>
+                    </div>
+                     <div class="mt-3 no-print">
+                        <button class="btn btn-sm btn-outline-success" onclick="window.print()"><i class="fas fa-print"></i> Imprimir / Salvar Relatório</button>
+                    </div>
+                </div>
+            `;
+        }
+
+    </script>
 </body>
+
 </html>
