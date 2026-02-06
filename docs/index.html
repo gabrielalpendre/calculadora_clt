@@ -120,6 +120,12 @@
         .nav-link {
             font-size: 0.9rem !important;
         }
+
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -129,6 +135,16 @@
             <a class="navbar-brand" href="#" onclick="showPage('page-home')">
                 <i class="fas fa-calculator"></i> Calculadora CLT
             </a>
+            <div class="d-flex align-items-center">
+                <div class="form-check form-switch text-light d-flex align-items-center me-2 d-lg-none">
+                    <input class="form-check-input" type="checkbox" role="switch" id="theme-switcher">
+                    <label class="form-check-label ms-2" for="theme-switcher"><i class="fas fa-moon"></i></label>
+                </div>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -138,15 +154,11 @@
                         <a class="nav-link" href="#" onclick="showPage('page-rescisao-form')">Calculadora de Rescisão</a>
                     </li>
                 </ul>
+                <div class="form-check form-switch text-light d-none d-lg-flex align-items-center">
+                    <input class="form-check-input" type="checkbox" role="switch" id="theme-switcher-desktop">
+                    <label class="form-check-label ms-2" for="theme-switcher-desktop"><i class="fas fa-moon"></i></label>
+                </div>
             </div>
-            <div class="form-check form-switch text-light d-flex align-items-center me-2 me-lg-0">
-                <input class="form-check-input" type="checkbox" role="switch" id="theme-switcher">
-                <label class="form-check-label ms-2" for="theme-switcher"><i class="fas fa-moon"></i></label>
-            </div>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
         </div>
     </nav>
 
@@ -178,7 +190,7 @@
 
                         <div class="mb-3">
                             <label class="form-label">Dia do mês que a empresa paga o salário</label>
-                            <input type="number" class="form-control" name="dia_pagamento" min="1" max="31" value="5" required>
+                            <input type="number" class="form-control" name="dia_pagamento" min="1" max="31" value="30" required>
                         </div>
 
                         <div class="row">
@@ -305,6 +317,7 @@
         // ===================================================================================
 
         const themeSwitcher = document.getElementById('theme-switcher');
+        const themeSwitcherDesktop = document.getElementById('theme-switcher-desktop');
         const themeIcon = document.querySelector('label[for="theme-switcher"] i');
         const docElement = document.documentElement;
 
@@ -321,12 +334,19 @@
         function setTheme(theme) {
             docElement.setAttribute('data-bs-theme', theme);
             localStorage.setItem('theme', theme);
-            themeSwitcher.checked = theme === 'dark';
+            const isDark = theme === 'dark';
+            themeSwitcher.checked = isDark;
+            themeSwitcherDesktop.checked = isDark;
             setIconForTheme(theme);
         }
 
         themeSwitcher.addEventListener('change', () => {
             const newTheme = themeSwitcher.checked ? 'dark' : 'light';
+            setTheme(newTheme);
+        });
+
+        themeSwitcherDesktop.addEventListener('change', () => {
+            const newTheme = themeSwitcherDesktop.checked ? 'dark' : 'light';
             setTheme(newTheme);
         });
 
