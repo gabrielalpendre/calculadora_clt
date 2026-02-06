@@ -1,0 +1,13 @@
+venv/
+env/
+.env
+.venv
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.vscode/
+.idea/
+.ipynb_checkpoints
