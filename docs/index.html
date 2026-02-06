@@ -11,8 +11,53 @@
         integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        /* Definição das variáveis de cor para o tema claro (padrão) */
+        :root {
+            --bs-body-bg: #f8f9fa;
+            --bs-body-color: #212529;
+            --card-bg: #ffffff;
+            --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            --table-striped-bg: #f8f9fa;
+            --info-bg: #e9f7ef;
+            --danger-info-bg: #fbe9eb;
+            --muted-text-color: #6c757d;
+            --bs-border-color: #dee2e6;
+        }
+
+        /* Sobrescreve as variáveis para o tema escuro */
+        [data-bs-theme="dark"] {
+            --bs-body-bg: #212529;
+            --bs-body-color: #dee2e6;
+            --card-bg: #343a40;
+            --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+            --table-striped-bg: #2c3034;
+            --info-bg: #1a3a2a;
+            --danger-info-bg: #492f33;
+            --muted-text-color: #adb5bd;
+            --bs-border-color: #495057;
+        }
+
+        /* Aplica as variáveis aos elementos */
         body {
-            background-color: #f8f9fa;
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .card, .alert {
+            background-color: var(--card-bg);
+            border-color: var(--bs-border-color);
+        }
+
+        .text-muted {
+            color: var(--muted-text-color) !important;
+        }
+
+        main {
+            flex: 1;
         }
 
         .page {
@@ -24,8 +69,8 @@
         }
 
         .card {
-            border: none;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            border-color: var(--bs-border-color);
+            box-shadow: var(--card-shadow);
         }
 
         .table-striped>tbody>tr:nth-of-type(odd)>* {
@@ -83,122 +128,114 @@
                         <a class="nav-link" href="#" onclick="showPage('page-salario-form')">Calculadora de Salário</a>
                     </li>
                 </ul>
+                <div class="navbar-nav ms-auto">
+                    <div class="form-check form-switch text-light d-flex align-items-center">
+                        <input class="form-check-input" type="checkbox" role="switch" id="theme-switcher">
+                        <label class="form-check-label ms-2" for="theme-switcher"><i class="fas fa-moon"></i></label>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
 
     <main class="container mt-4">
         <!-- PÁGINA INICIAL -->
-        <div id="page-home" class="page active">
-            <div class="p-5 mb-4 bg-light rounded-3">
-                <div class="container-fluid py-5">
-                    <h1 class="display-5 fw-bold">Calculadora RH</h1>
-                    <p class="col-md-8 fs-4">Uma ferramenta para simplificar cálculos trabalhistas. Escolha uma das
-                        opções abaixo para começar.</p>
-                    <button class="btn btn-primary btn-lg" type="button" onclick="showPage('page-rescisao-form')">
-                        <i class="fas fa-file-contract"></i> Calcular Rescisão
-                    </button>
-                    <button class="btn btn-success btn-lg" type="button" onclick="showPage('page-salario-form')">
-                        <i class="fas fa-money-bill-wave"></i> Calcular Salário Líquido
-                    </button>
-                </div>
-            </div>
-        </div>
+        <div id="page-home" class="page active"></div>
 
         <!-- PÁGINA FORMULÁRIO RESCISÃO -->
         <div id="page-rescisao-form" class="page">
             <h2>Calculadora de Rescisão</h2>
-            <form id="form-rescisao" class="card p-4 mt-3">
-                <div class="mb-3">
-                    <label class="form-label">Tipo de rescisão</label>
-                    <select class="form-select" name="tipo_rescisao" id="tipo_rescisao">
-                        <option value="sem_justa_causa">Demissão sem justa causa</option>
-                        <option value="pedido_demissao">Pedido de demissão</option>
-                        <option value="justa_causa">Demissão por justa causa</option>
-                        <option value="acordo">Acordo entre as partes</option>
-                        <option value="termino_contrato">Término de contrato de experiência</option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label>Salário bruto mensal</label>
-                    <input type="number" step="0.01" class="form-control" name="salario" required>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Dia do mês que a empresa paga o salário</label>
-                    <input type="number" class="form-control" name="dia_pagamento" min="1" max="31" value="5" required>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>Data de início do contrato</label>
-                        <input type="date" class="form-control" name="data_inicio" required>
-                    </div>
-                    <div class="col-md-6 mb-3" id="data_fim_div">
-                        <label>Data do último dia trabalhado</label>
-                        <input type="date" class="form-control" name="data_fim" required>
-                    </div>
-                </div>
-
-                <hr>
-
-                <div id="aviso_pedido_demissao" style="display: none;">
-                    <h5>Aviso Prévio (Pedido de Demissão)</h5>
-                    <div class="mb-3">
-                        <label>Data da solicitação da demissão</label>
-                        <input type="date" class="form-control" name="data_solicitacao_demissao"
-                            id="data_solicitacao_demissao">
-                    </div>
-                    <div class="mb-3">
-                        <label>Irá cumprir o aviso prévio de 30 dias?</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="cumprira_aviso" id="cumprira_sim"
-                                value="sim" checked>
-                            <label class="form-check-label" for="cumprira_sim">Sim, cumprirei integralmente</label>
+            <div class="row">
+                <div class="col-lg-5">
+                    <form id="form-rescisao" class="card p-4 mt-3">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de rescisão</label>
+                            <select class="form-select" name="tipo_rescisao" id="tipo_rescisao">
+                                <option value="sem_justa_causa">Demissão sem justa causa</option>
+                                <option value="pedido_demissao">Pedido de demissão</option>
+                                <option value="justa_causa">Demissão por justa causa</option>
+                                <option value="acordo">Acordo entre as partes</option>
+                                <option value="termino_contrato">Término de contrato de experiência</option>
+                            </select>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="cumprira_aviso" id="cumprira_nao"
-                                value="nao">
-                            <label class="form-check-label" for="cumprira_nao">Não, sairei antes</label>
+
+                        <div class="mb-3">
+                            <label>Salário bruto mensal</label>
+                            <input type="number" step="0.01" class="form-control" name="salario" required>
                         </div>
-                    </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Dia do mês que a empresa paga o salário</label>
+                            <input type="number" class="form-control" name="dia_pagamento" min="1" max="31" value="5" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Data de início do contrato</label>
+                                <input type="date" class="form-control" name="data_inicio" required>
+                            </div>
+                            <div class="col-md-6 mb-3" id="data_fim_div">
+                                <label>Data do último dia trabalhado</label>
+                                <input type="date" class="form-control" name="data_fim" required>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div id="aviso_pedido_demissao" style="display: none;">
+                            <h5>Aviso Prévio (Pedido de Demissão)</h5>
+                            <div class="mb-3">
+                                <label>Data da solicitação da demissão</label>
+                                <input type="date" class="form-control" name="data_solicitacao_demissao"
+                                    id="data_solicitacao_demissao">
+                            </div>
+                            <div class="mb-3">
+                                <label>Irá cumprir o aviso prévio de 30 dias?</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="cumprira_aviso" id="cumprira_sim"
+                                        value="sim" checked>
+                                    <label class="form-check-label" for="cumprira_sim">Sim, cumprirei integralmente</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="cumprira_aviso" id="cumprira_nao"
+                                        value="nao">
+                                    <label class="form-check-label" for="cumprira_nao">Não, sairei antes</label>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="data_saida_pretendida_div" style="display: none;">
+                                <label>Se não, qual a data que pretende sair?</label>
+                                <input type="date" class="form-control" name="data_saida_pretendida">
+                            </div>
+                        </div>
+
+                        <div id="aviso_sem_justa_causa">
+                             <h5>Aviso Prévio (Demissão sem Justa Causa)</h5>
+                             <div class="mb-3">
+                                <label>Tipo de Aviso Prévio</label>
+                                 <select class="form-select" name="tipo_aviso_sem_justa_causa" id="tipo_aviso_sem_justa_causa">
+                                    <option value="indenizado">Indenizado (saída imediata)</option>
+                                    <option value="trabalhado">Trabalhado</option>
+                                </select>
+                             </div>
+                        </div>
+
+                        <div class="form-check my-3" id="ferias_vencidas_div" style="display: none;">
+                            <input class="form-check-input" type="checkbox" name="tem_ferias_vencidas" id="tem_ferias_vencidas">
+                            <label class="form-check-label" for="tem_ferias_vencidas">
+                                Possui férias vencidas e não gozadas?
+                            </label>
+                        </div>
+
+                        <button class="btn btn-primary mt-4">Calcular</button>
+                    </form>
                 </div>
-
-                <div id="aviso_sem_justa_causa">
-                     <h5>Aviso Prévio (Demissão sem Justa Causa)</h5>
-                     <div class="mb-3">
-                        <label>Tipo de Aviso Prévio</label>
-                         <select class="form-select" name="tipo_aviso_sem_justa_causa" id="tipo_aviso_sem_justa_causa">
-                            <option value="indenizado">Indenizado (saída imediata)</option>
-                            <option value="trabalhado">Trabalhado</option>
-                        </select>
-                     </div>
+                <div class="col-lg-7">
+                    <div id="resultado-rescisao-content" class="mt-3 printable-area">
+                        <div class="card p-4" id="rescisao-placeholder">
+                           <h3 class="text-center text-muted">Preencha os dados ao lado para ver o resultado.</h3>
+                        </div>
+                   </div>
                 </div>
-
-                <div class="form-check my-3">
-                    <input class="form-check-input" type="checkbox" name="tem_ferias_vencidas" id="tem_ferias_vencidas">
-                    <label class="form-check-label" for="tem_ferias_vencidas">
-                        Possui férias vencidas e não gozadas?
-                    </label>
-                </div>
-
-                <button class="btn btn-primary mt-4">Calcular</button>
-            </form>
-        </div>
-
-        <!-- PÁGINA RESULTADO RESCISÃO -->
-        <div id="page-rescisao-resultado" class="page printable-area">
-            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
-                <h2>Resultado da Rescisão</h2>
-                <button type="button" class="btn btn-success" onclick="window.print()">
-                    <i class="fas fa-print"></i> Imprimir / Salvar PDF
-                </button>
-            </div>
-            <div id="resultado-rescisao-content"></div>
-            <div class="mt-4 no-print">
-                <button onclick="showPage('page-rescisao-form')" class="btn btn-secondary">Novo cálculo de rescisão</button>
-                <button onclick="showPage('page-home')" class="btn btn-outline-secondary">Voltar ao Início</button>
             </div>
         </div>
 
@@ -242,7 +279,7 @@
 
     </main>
 
-    <footer class="container text-center text-muted py-4 mt-5 no-print">
+    <footer class="container text-start text-muted py-4 mt-5 no-print">
         <p>Calculadora RH &copy; 2026</p>
     </footer>
 
@@ -254,6 +291,44 @@
         // ===================================================================================
         // LÓGICA DE NAVEGAÇÃO E CONTROLE DA UI
         // ===================================================================================
+
+        const themeSwitcher = document.getElementById('theme-switcher');
+        const themeIcon = document.querySelector('label[for="theme-switcher"] i');
+        const docElement = document.documentElement;
+
+        function setIconForTheme(theme) {
+            if (theme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        function setTheme(theme) {
+            docElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            themeSwitcher.checked = theme === 'dark';
+            setIconForTheme(theme);
+        }
+
+        themeSwitcher.addEventListener('change', () => {
+            const newTheme = themeSwitcher.checked ? 'dark' : 'light';
+            setTheme(newTheme);
+        });
+
+        // Define o tema inicial com base no localStorage ou preferência do SO
+        const storedTheme = localStorage.getItem('theme');
+        const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const initialTheme = storedTheme || preferredTheme;
+        setTheme(initialTheme);
+
+        // Ouve mudanças na preferência do SO
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            const newTheme = e.matches ? 'dark' : 'light';
+            setTheme(newTheme);
+        });
 
         const pages = document.querySelectorAll('.page');
 
@@ -268,7 +343,7 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+         document.addEventListener('DOMContentLoaded', () => {
             // Navegação inicial
             showPage('page-home');
 
@@ -279,6 +354,9 @@
             const dataFimInput = document.querySelector('input[name="data_fim"]');
             const dataFimDiv = document.getElementById('data_fim_div');
             const dataSolicitacaoInput = document.getElementById('data_solicitacao_demissao');
+            const dataSaidaPretendidaDiv = document.getElementById('data_saida_pretendida_div');
+            const feriasVencidasDiv = document.getElementById('ferias_vencidas_div');
+            const dataInicioInput = document.querySelector('input[name="data_inicio"]');
 
             tipoRescisaoSelect.addEventListener('change', (e) => {
                 const tipo = e.target.value;
@@ -287,24 +365,50 @@
                 dataFimInput.required = tipo !== 'pedido_demissao';
                 dataFimDiv.style.display = tipo === 'pedido_demissao' ? 'none' : 'block';
                 dataSolicitacaoInput.required = tipo === 'pedido_demissao';
+                toggleFeriasVencidasVisibility();
             });
 
             document.querySelectorAll('input[name="cumprira_aviso"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    if (e.target.value === 'sim') {
-                        dataFimDiv.style.display = 'none';
-                        dataFimInput.required = false;
+                    const dataSaidaInput = dataSaidaPretendidaDiv.querySelector('input');
+                    if (e.target.value === 'nao') {
+                        dataSaidaPretendidaDiv.style.display = 'block';
+                        dataSaidaInput.required = true;
                     } else {
-                        dataFimDiv.style.display = 'block';
-                        dataFimInput.required = true;
-                        dataFimDiv.querySelector('label').textContent = 'Se não, qual a data que pretende sair?';
+                        dataSaidaPretendidaDiv.style.display = 'none';
+                        dataSaidaInput.required = false;
                     }
                 });
+            });
+
+            function toggleFeriasVencidasVisibility() {
+                const dataInicio = parseDate(dataInicioInput.value);
+                let dataReferencia;
+
+                const tipo = tipoRescisaoSelect.value;
+
+                if (tipo === 'pedido_demissao') {
+                    dataReferencia = parseDate(dataSolicitacaoInput.value);
+                } else {
+                    dataReferencia = parseDate(dataFimInput.value);
+                }
+
+                if (dataInicio && dataReferencia && !isNaN(dataInicio) && !isNaN(dataReferencia)) {
+                    const diffMeses = diffInMonths(dataInicio, dataReferencia);
+                    feriasVencidasDiv.style.display = diffMeses >= 12 ? 'block' : 'none';
+                } else {
+                    feriasVencidasDiv.style.display = 'none';
+                }
+            }
+
+            [dataInicioInput, dataFimInput, dataSolicitacaoInput].forEach(input => {
+                input.addEventListener('change', toggleFeriasVencidasVisibility);
             });
 
             // Disparar o change para configurar o estado inicial
             tipoRescisaoSelect.dispatchEvent(new Event('change'));
             document.querySelector('input[name="cumprira_aviso"]:checked').dispatchEvent(new Event('change'));
+            toggleFeriasVencidasVisibility();
 
             // Handlers de submit dos formulários
             document.getElementById('form-rescisao').addEventListener('submit', handleRescisaoSubmit);
@@ -633,7 +737,7 @@
                     data_fim = new Date(data_solicitacao);
                     data_fim.setDate(data_fim.getDate() + 30);
                 } else {
-                    data_fim = parseDate(data.data_fim);
+                    data_fim = parseDate(data.data_saida_pretendida);
                     dias_aviso_cumprido = diffInDays(data_solicitacao, data_fim);
                     dias_aviso_cumprido = Math.max(0, Math.min(dias_aviso_cumprido, 30));
                 }
@@ -698,8 +802,7 @@
             };
 
             renderRescisaoResult(resultado);
-            showPage('page-rescisao-resultado');
-        }
+         }
 
         function handleSalarioSubmit(event) {
             event.preventDefault();
@@ -719,8 +822,18 @@
 
         function renderRescisaoResult(resultado) {
             const container = document.getElementById('resultado-rescisao-content');
+            document.getElementById('rescisao-placeholder')?.remove();
 
-            let verbasHtml = '<table class="table table-striped mt-4"><caption>Verbas Rescisórias (Recebimentos)</caption><thead class="table-success"><tr><th>Verba</th><th class="text-end">Valor (R$)</th></tr></thead><tbody>';
+            const headerHtml = `
+                <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+                    <h2>Resultado da Rescisão</h2>
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="window.print()">
+                        <i class="fas fa-print"></i> Imprimir / Salvar PDF
+                    </button>
+                </div>
+            `;
+
+            let verbasHtml = '<div class="card p-4 mb-3"><table class="table table-striped"><caption>Verbas Rescisórias (Recebimentos)</caption><thead class="table-success"><tr><th>Verba</th><th class="text-end">Valor (R$)</th></tr></thead><tbody>';
             for (const [item, data] of Object.entries(resultado)) {
                 if (data.valor > 0 && !item.includes('Total') && !item.includes('Líquido') && !item.includes('Desconto')) {
                     verbasHtml += `
@@ -729,7 +842,7 @@
                             <td class="text-end"><strong>${data.valor.toFixed(2)}</strong></td>
                         </tr>
                         <tr class="collapse" id="collapse-v-${item.replace(/\s/g, '')}">
-                            <td colspan="2" class="p-3" style="background-color: #e9f7ef;"><small><strong>Como chegamos neste valor:</strong><br><pre class="mb-0">${data.calculo}</pre></small></td>
+                            <td colspan="2" class="p-3" style="background-color: var(--info-bg);"><small><strong>Como chegamos neste valor:</strong><br><pre class="mb-0">${data.calculo}</pre></small></td>
                         </tr>`;
                 }
             }
@@ -738,9 +851,9 @@
                     <td><strong>Total Bruto</strong></td>
                     <td class="text-end"><strong>${(resultado['Total Bruto']?.valor || 0).toFixed(2)}</strong></td>
                 </tr>
-            </tbody></table>`;
+            </tbody></table></div>`;
 
-            let descontosHtml = '<table class="table table-striped mt-4"><caption>Descontos</caption><thead class="table-danger"><tr><th>Desconto</th><th class="text-end">Valor (R$)</th></tr></thead><tbody>';
+            let descontosHtml = '<div class="card p-4 mb-3"><table class="table table-striped"><caption>Descontos</caption><thead class="table-danger"><tr><th>Desconto</th><th class="text-end">Valor (R$)</th></tr></thead><tbody>';
             let totalDescontosFinal = 0;
             for (const [item, data] of Object.entries(resultado)) {
                 if ((data.valor < 0 && item.includes('Aviso')) || (item.includes('Desconto') && !item.includes('Total'))) {
@@ -751,7 +864,7 @@
                             <td class="text-end"><strong>${data.valor.toFixed(2)}</strong></td>
                         </tr>
                         <tr class="collapse" id="collapse-d-${item.replace(/\s/g, '')}">
-                            <td colspan="2" class="p-3" style="background-color: #fbe9eb;"><small><strong>Como chegamos neste valor:</strong><br><pre class="mb-0">${data.calculo}</pre></small></td>
+                            <td colspan="2" class="p-3" style="background-color: var(--danger-info-bg);"><small><strong>Como chegamos neste valor:</strong><br><pre class="mb-0">${data.calculo}</pre></small></td>
                         </tr>`;
                 }
             }
@@ -760,19 +873,28 @@
                     <td><strong>Total de Descontos</strong></td>
                     <td class="text-end"><strong>-${totalDescontosFinal.toFixed(2)}</strong></td>
                 </tr>
-            </tbody></table>`;
+            </tbody></table></div>`;
 
             const liquidoHtml = `
                 <div class="alert alert-primary text-center mt-4">
                     <h3>Líquido a Receber: R$ ${(resultado['Líquido a Receber']?.valor || 0).toFixed(2)}</h3>
                 </div>`;
 
-            container.innerHTML = verbasHtml + descontosHtml + liquidoHtml;
+            container.innerHTML = headerHtml + verbasHtml + descontosHtml + liquidoHtml;
         }
 
         function renderSalarioResult(resultado) {
             const container = document.getElementById('resultado-salario-content');
             document.getElementById('salario-placeholder')?.remove();
+
+            const headerHtml = `
+                <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+                    <h2>Resultado do Salário</h2>
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="window.print()">
+                        <i class="fas fa-print"></i> Imprimir / Salvar Relatório
+                    </button>
+                </div>
+            `;
 
             const salarioBruto = resultado['Salário Bruto'].valor;
             const inss = resultado['(-) Desconto INSS'];
@@ -781,7 +903,7 @@
             const sugestaoPj = resultado['Sugestão Salário PJ'];
             const valoresHora = resultado['Valores por Hora'];
 
-            container.innerHTML = `
+            const contentHtml = `
                 <div class="card p-4 mb-3">
                     <h3 class="mb-3">Demonstrativo de Pagamento (CLT)</h3>
                     <table class="table">
@@ -793,12 +915,12 @@
                             <td>(-) Desconto INSS <i class="fas fa-info-circle text-muted"></i></td>
                             <td class="text-end">- R$ ${inss.valor.toFixed(2)}</td>
                         </tr>
-                        <tr class="collapse" id="collapse-inss-sal"><td colspan="2" class="p-3" style="background-color: #fbe9eb;"><small><pre>${inss.calculo}</pre></small></td></tr>
+                        <tr class="collapse" id="collapse-inss-sal"><td colspan="2" class="p-3" style="background-color: var(--danger-info-bg);"><small><pre>${inss.calculo}</pre></small></td></tr>
                         <tr class="text-danger" data-bs-toggle="collapse" href="#collapse-irrf-sal" role="button">
                             <td>(-) Desconto IRRF <i class="fas fa-info-circle text-muted"></i></td>
                             <td class="text-end">- R$ ${irrf.valor.toFixed(2)}</td>
                         </tr>
-                        <tr class="collapse" id="collapse-irrf-sal"><td colspan="2" class="p-3" style="background-color: #fbe9eb;"><small><pre>${irrf.calculo}</pre></small></td></tr>
+                        <tr class="collapse" id="collapse-irrf-sal"><td colspan="2" class="p-3" style="background-color: var(--danger-info-bg);"><small><pre>${irrf.calculo}</pre></small></td></tr>
                         <tr class="fw-bold table-success">
                             <td>Salário Líquido a Receber</td>
                             <td class="text-end">R$ ${salarioLiquido.valor.toFixed(2)}</td>
@@ -829,11 +951,10 @@
                             <div class="collapse" id="collapse-pj-hora"><small><pre>${valoresHora.pj.calculo}</pre></small></div>
                         </div>
                     </div>
-                     <div class="mt-3 no-print">
-                        <button class="btn btn-sm btn-outline-success" onclick="window.print()"><i class="fas fa-print"></i> Imprimir / Salvar Relatório</button>
-                    </div>
                 </div>
             `;
+
+            container.innerHTML = headerHtml + contentHtml;
         }
 
     </script>
