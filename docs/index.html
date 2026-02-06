@@ -44,6 +44,7 @@
             transition: background-color 0.3s, color 0.3s;
             display: flex;
             flex-direction: column;
+            font-size: 0.90rem; /* Reduz a fonte */
             min-height: 100vh;
         }
 
@@ -85,6 +86,10 @@
         [data-bs-toggle="collapse"] {
             cursor: pointer;
         }
+        
+        pre {
+            white-space: pre-wrap;
+        }
 
         @media print {
             body * {
@@ -106,6 +111,15 @@
                 display: none !important;
             }
         }
+
+        /* Ajustes de fonte na Navbar */
+        .navbar-brand {
+            font-size: 0.9rem !important;
+        }
+
+        .nav-link {
+            font-size: 0.9rem !important;
+        }
     </style>
 </head>
 
@@ -113,14 +127,10 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark no-print">
         <div class="container">
             <a class="navbar-brand" href="#" onclick="showPage('page-home')">
-                <i class="fas fa-calculator"></i> Calculadora RH
+                <i class="fas fa-calculator"></i> Calculadora CLT
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="showPage('page-salario-form')">Calculadora de Salário</a>
                     </li>
@@ -128,13 +138,15 @@
                         <a class="nav-link" href="#" onclick="showPage('page-rescisao-form')">Calculadora de Rescisão</a>
                     </li>
                 </ul>
-                <div class="navbar-nav ms-auto">
-                    <div class="form-check form-switch text-light d-flex align-items-center">
-                        <input class="form-check-input" type="checkbox" role="switch" id="theme-switcher">
-                        <label class="form-check-label ms-2" for="theme-switcher"><i class="fas fa-moon"></i></label>
-                    </div>
-                </div>
             </div>
+            <div class="form-check form-switch text-light d-flex align-items-center me-2 me-lg-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="theme-switcher">
+                <label class="form-check-label ms-2" for="theme-switcher"><i class="fas fa-moon"></i></label>
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
         </div>
     </nav>
 
@@ -280,7 +292,7 @@
     </main>
 
     <footer class="container text-start text-muted py-4 mt-5 no-print">
-        <p>&copy; 2026</p>
+        <p>GABRL&copy; 2026</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
