@@ -399,6 +399,27 @@
 
     </main>
 
+    <!-- Modal de Detalhes do Histórico -->
+    <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalDetalhesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDetalhesLabel">Detalhes do Cálculo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-detalhes-body">
+                        <!-- Conteúdo inserido via JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="btn-modal-refazer">Refazer este cálculo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="container text-start text-muted py-4 mt-5 no-print">
         <p>GABRL&copy; 2026</p>
     </footer>
@@ -1172,7 +1193,7 @@
                                 <i class="fas fa-redo"></i> Refazer
                             </button>
                             <button class="btn btn-sm btn-outline-info" onclick='verDetalhesHistorico(${JSON.stringify(entry.id)})' title="Ver Detalhes">
-                                <i class="fas fa-search-plus"></i>
+                                <i class="fas fa-expand-alt"></i> Detalhes
                             </button>
                         </td>
                     </tr>
@@ -1191,9 +1212,50 @@
         function verDetalhesHistorico(id) {
             const history = JSON.parse(localStorage.getItem('calculadora_historico') || '[]');
             const entry = history.find(e => e.id === id);
-            if (entry) {
-                alert(`Detalhes do cálculo (${entry.type}):\n\nInputs: ${JSON.stringify(entry.input, null, 2)}\n\nResultado Simplificado: ${JSON.stringify(entry.output, null, 2)}`);
-            }
+            if (!entry) return;
+
+            const body = document.getElementById('modal-detalhes-body');
+            const label = document.getElementById('modalDetalhesLabel');
+            label.innerText = `Detalhes do Cálculo: ${entry.type}`;
+
+            let html = `
+                <div class="mb-4">
+                    <h6><i class="fas fa-list me-2"></i>Dados Informados (Inputs)</h6>
+                    <div class="card p-3 bg-light">
+                        <ul class="list-unstyled mb-0">
+                            ${Object.entries(entry.input).map(([key, val]) => `
+                                <li class="mb-1"><strong>${key.replace(/_/g, ' ')}:</strong> ${val}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <h6><i class="fas fa-poll-h me-2"></i>Resultado Simplificado</h6>
+                    <div class="alert alert-info py-2 px-3">
+                        ${Object.entries(entry.output).map(([key, val]) => `
+                            <div><strong>${key}:</strong> ${typeof val === 'number' ? val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : val}</div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            body.innerHTML = html;
+
+            // Configura o botão de refazer dentro do modal
+            document.getElementById('btn-modal-refazer').onclick = () => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modal_detalhes')); // Erro aqui, corrigindo abaixo
+            };
+
+            // Correção da chamada do modal e botão
+            const modalEl = document.getElementById('modalDetalhes');
+            const modalInstance = new bootstrap.Modal(modalEl);
+
+            document.getElementById('btn-modal-refazer').onclick = () => {
+                modalInstance.hide();
+                refazerCalculo(id);
+            };
+
+            modalInstance.show();
         }
 
         function refazerCalculo(id) {
