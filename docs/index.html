@@ -1221,17 +1221,17 @@
             let html = `
                 <div class="mb-4">
                     <h6><i class="fas fa-list me-2"></i>Dados Informados (Inputs)</h6>
-                    <div class="card p-3 bg-light">
+                    <div class="card p-3 shadow-sm">
                         <ul class="list-unstyled mb-0">
                             ${Object.entries(entry.input).map(([key, val]) => `
-                                <li class="mb-1"><strong>${key.replace(/_/g, ' ')}:</strong> ${val}</li>
+                                <li class="mb-1 text-secondary-emphasis"><strong>${key.replace(/_/g, ' ')}:</strong> ${val}</li>
                             `).join('')}
                         </ul>
                     </div>
                 </div>
                 <div>
                     <h6><i class="fas fa-poll-h me-2"></i>Resultado Simplificado</h6>
-                    <div class="alert alert-info py-2 px-3">
+                    <div class="alert alert-primary py-2 px-3 mb-0">
                         ${Object.entries(entry.output).map(([key, val]) => `
                             <div><strong>${key}:</strong> ${typeof val === 'number' ? val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : val}</div>
                         `).join('')}
