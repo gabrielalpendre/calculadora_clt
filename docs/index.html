@@ -273,7 +273,13 @@
                             </div>
                             <div class="mb-3" id="data_saida_pretendida_div" style="display: none;">
                                 <label>Se não, qual a data que pretende sair?</label>
-                                <input type="date" class="form-control" name="data_saida_pretendida">
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="data_saida_pretendida">
+                                    <button class="btn btn-outline-secondary btn-sm" type="button"
+                                        onclick="preencherDataSaida('hoje')">Hoje</button>
+                                    <button class="btn btn-outline-secondary btn-sm" type="button"
+                                        onclick="preencherDataSaida('solicitacao')">Mesmo dia</button>
+                                </div>
                             </div>
                         </div>
 
@@ -375,10 +381,9 @@
                     <table class="table table-hover mb-0" id="table-historico">
                         <thead class="table-dark">
                             <tr>
-                                <th class="ps-3" style="width: 25%;">Data/Hora</th>
-                                <th style="width: 20%;">Tipo</th>
-                                <th style="width: 35%;">Destaque (Líquido)</th>
-                                <th class="text-end pe-3" style="width: 20%;">Ação</th>
+                                <th class="ps-3" style="width: 35%;">Data/Hora</th>
+                                <th style="width: 35%;">Tipo</th>
+                                <th class="text-end pe-3" style="width: 30%;">Ação</th>
                             </tr>
                         </thead>
                         <tbody id="historico-body">
@@ -1157,16 +1162,17 @@
             emptyState.style.display = 'none';
             body.innerHTML = history.map(entry => {
                 const date = new Date(entry.timestamp).toLocaleString('pt-BR');
-                const destaque = entry.output.liquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                 const icon = entry.type === 'Rescisão' ? 'fa-file-invoice-dollar' : 'fa-hand-holding-dollar';
 
                 return `
                     <tr>
-                        <td class="ps-3 border-start border-4 border-primary">${date}</td>
+                        <td class="ps-3">${date}</td>
                         <td><i class="fas ${icon} me-2 text-primary"></i>${entry.type}</td>
-                        <td class="fw-bold">${destaque}</td>
                         <td class="text-end pe-3">
-                            <button class="btn btn-sm btn-outline-info" onclick='verDetalhesHistorico(${JSON.stringify(entry.id)})'>
+                            <button class="btn btn-sm btn-outline-primary" onclick='refazerCalculo(${JSON.stringify(entry.id)})' title="Refazer Cálculo">
+                                <i class="fas fa-redo"></i> Refazer
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick='verDetalhesHistorico(${JSON.stringify(entry.id)})' title="Ver Detalhes">
                                 <i class="fas fa-search-plus"></i>
                             </button>
                         </td>
@@ -1188,6 +1194,69 @@
             const entry = history.find(e => e.id === id);
             if (entry) {
                 alert(`Detalhes do cálculo (${entry.type}):\n\nInputs: ${JSON.stringify(entry.input, null, 2)}\n\nResultado Simplificado: ${JSON.stringify(entry.output, null, 2)}`);
+            }
+        }
+
+        function refazerCalculo(id) {
+            const history = JSON.parse(localStorage.getItem('calculadora_historico') || '[]');
+            const entry = history.find(e => e.id === id);
+            if (!entry) return;
+
+            if (entry.type === 'Rescisão') {
+                showPage('page-rescisao-form');
+                const form = document.getElementById('form-rescisao');
+
+                // Preencher campos
+                for (let key in entry.input) {
+                    const input = form.querySelector(`[name="${key}"]`);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = entry.input[key];
+                        } else if (input.type === 'radio') {
+                            form.querySelector(`[name="${key}"][value="${entry.input[key]}"]`).checked = true;
+                        } else {
+                            input.value = entry.input[key];
+                        }
+                    }
+                }
+                // Forçar atualização da interface do formulário
+                form.querySelector('#tipo_rescisao').dispatchEvent(new Event('change'));
+                form.querySelectorAll('input[name="cumprira_aviso"]').forEach(r => {
+                    if (r.checked) r.dispatchEvent(new Event('change'));
+                });
+
+                // Disparar cálculo
+                form.dispatchEvent(new Event('submit'));
+
+            } else if (entry.type === 'Salário') {
+                showPage('page-salario-form');
+                const form = document.getElementById('form-salario');
+
+                // Preencher campos
+                for (let key in entry.input) {
+                    const input = form.querySelector(`[name="${key}"]`);
+                    if (input) input.value = entry.input[key];
+                }
+
+                // Disparar cálculo
+                form.dispatchEvent(new Event('submit'));
+            }
+        }
+
+        function preencherDataSaida(tipo) {
+            const formRescisao = document.getElementById('form-rescisao');
+            const inputSaida = formRescisao.querySelector('input[name="data_saida_pretendida"]');
+
+            if (tipo === 'hoje') {
+                const hoje = new Date().toISOString().split('T')[0];
+                inputSaida.value = hoje;
+            } else if (tipo === 'solicitacao') {
+                const dataSolicitacao = formRescisao.querySelector('input[name="data_solicitacao_demissao"]').value;
+                if (dataSolicitacao) {
+                    inputSaida.value = dataSolicitacao;
+                } else {
+                    alert('Por favor, preencha a data de solicitação primeiro.');
+                }
             }
         }
 
