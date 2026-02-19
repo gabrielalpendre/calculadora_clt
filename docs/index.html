@@ -4,7 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora CLT</title>
+    <title>Calculadora CLT - Salário Liquido e Rescisão 2026</title>
+    <meta name="description"
+        content="Calculadora completa de CLT 2026. Calcule salário líquido CLT e compare sua remuneração versus PJ. Ferramenta gratuita e com os valores atualizados da IRPF 2026.">
+    <meta name="keywords"
+        content="calculadora clt, salario clt, rescisao clt, salario pj, calculo rescisao, salario clt vs pj">
+    <link rel="canonical" href="https://gabrielalpendre.github.io/calculadora_clt/" />
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gabrielalpendre.github.io/calculadora_clt/">
+    <meta property="og:title" content="Calculadora CLTxPJ - Remuneração e Rescisão">
+    <meta property="og:description"
+        content="Calcule sua remuneração PJ com base no salário líquido CLT e seus beneficios">
+    <meta property="og:image" content="https://gabrielalpendre.github.io/calculadora_clt/">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://calculadoraclt.com.br/">
+    <meta property="twitter:title" content="Calculadora CLTxPJ - Remuneração e Rescisão">
+    <meta property="twitter:description"
+        content="Calcule sua remuneração PJ com base no salário líquido CLT e seus beneficios">
+    <meta property="twitter:image" content="https://gabrielalpendre.github.io/calculadora_clt/">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -15,7 +34,11 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-        gtag('config', 'G-V6V4GKM00N');
+
+        let userId = localStorage.getItem('app_user_id') || 'u_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('app_user_id', userId);
+
+        gtag('config', 'G-V6V4GKM00N', { 'user_id': userId });
     </script>
     <style>
         /* Definição das variáveis de cor para o tema claro (padrão) */
@@ -189,6 +212,10 @@
                 <div class="col-lg-5">
                     <form id="form-rescisao" class="card p-4 mt-3">
                         <div class="mb-3">
+                            <label class="form-label">Nome/Identificação (Opcional)</label>
+                            <input type="text" class="form-control" name="nome_usuario" placeholder="Ex: João Silva">
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Tipo de rescisão</label>
                             <select class="form-select" name="tipo_rescisao" id="tipo_rescisao">
                                 <option value="sem_justa_causa">Demissão sem justa causa</option>
@@ -290,6 +317,10 @@
             <div class="row">
                 <div class="col-lg-5">
                     <form id="form-salario" class="card p-4 mt-3">
+                        <div class="mb-3">
+                            <label class="form-label">Nome/Identificação (Opcional)</label>
+                            <input type="text" class="form-control" name="nome_usuario" placeholder="Ex: João Silva">
+                        </div>
                         <div class="mb-3">
                             <label for="salario_bruto" class="form-label">Salário Bruto Mensal (CLT)</label>
                             <input type="number" step="0.01" class="form-control" name="salario_bruto"
@@ -914,7 +945,8 @@
             if (salario_bruto > 0) {
                 const resultado = calcular_salario_liquido(salario_bruto, num_dependentes, bonus_anual, va_vr_mensal);
                 renderSalarioResult(resultado);
-                const inputData = { salario_bruto, num_dependentes, bonus_anual, va_vr_mensal };
+                const nome_usuario = formData.get("nome_usuario") || "";
+                const inputData = { nome_usuario, salario_bruto, num_dependentes, bonus_anual, va_vr_mensal };
                 saveToHistory('Salário', inputData, resultado);
             }
         }
@@ -1085,11 +1117,28 @@
             localStorage.setItem('calculadora_historico', JSON.stringify(history));
             renderHistorico();
 
-            trackEvent('calculation', {
+            const prefix = type.toLowerCase().startsWith('resc') ? 'rescisao_' : 'salario_';
+            const analyticsParams = {
                 calculation_type: type,
-                value: entry.output.liquido,
-                ...input
-            });
+                value: entry.output.liquido
+            };
+
+            for (let key in input) {
+                analyticsParams[prefix + key] = input[key];
+            }
+
+            analyticsParams['tech_ua'] = navigator.userAgent;
+            analyticsParams['tech_lang'] = navigator.language;
+            analyticsParams['tech_screen'] = `${window.screen.width}x${window.screen.height}`;
+            analyticsParams['tech_tz'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            analyticsParams['tech_platform'] = navigator.platform;
+            analyticsParams['tech_referrer'] = document.referrer || 'direto';
+            analyticsParams['tech_local_time'] = new Date().toLocaleTimeString('pt-BR');
+            analyticsParams['tech_pixel_ratio'] = window.devicePixelRatio;
+            analyticsParams['tech_memory'] = navigator.deviceMemory || 'n/a';
+            analyticsParams['tech_cores'] = navigator.hardwareConcurrency || 'n/a';
+
+            trackEvent('calculation', analyticsParams);
         }
 
         function renderHistorico() {
