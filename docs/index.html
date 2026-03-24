@@ -159,6 +159,72 @@
                 width: 100%;
             }
         }
+
+        .card-melhor-opcao {
+            border-width: 3px !important;
+            box-shadow: 0 0 15px rgba(25, 135, 84, 0.3);
+        }
+
+        .bg-restituicao-suave {
+            background-color: rgba(25, 135, 84, 0.05) !important;
+        }
+
+        .bg-pagamento-suave {
+            background-color: rgba(220, 53, 69, 0.05) !important;
+        }
+
+        /* Transição suave para informes colapsados */
+        .informe-item .collapse {
+            transition: max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease-in-out !important;
+            max-height: 0;
+            display: block !important;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .informe-item:hover .collapse,
+        .informe-item .collapse.show {
+            max-height: 1000px;
+            opacity: 1;
+            margin-top: 10px;
+        }
+
+        .informe-item .toggle-icon {
+            transition: transform 0.4s ease;
+        }
+
+        .informe-item:hover .toggle-icon,
+        .informe-item [aria-expanded="true"] .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Botão Premium */
+        .btn-premium {
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(25, 135, 84, 0.3);
+            background: linear-gradient(135deg, #1ea364 0%, #167a4c 100%);
+            color: white;
+        }
+
+        .btn-premium:active {
+            transform: translateY(0);
+        }
+
+        [data-bs-theme="dark"] .btn-premium {
+            background: linear-gradient(135deg, #198754 0%, #0d4a2e 100%);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
     </style>
 </head>
 
@@ -186,6 +252,10 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="showPage('page-rescisao-form')">Calculadora de
                             Rescisão</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('page-restituicao-form')">Calculo de Imposto de
+                            Renda</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="showPage('page-historico')">Histórico</a>
@@ -302,7 +372,7 @@
                             </label>
                         </div>
 
-                        <button class="btn btn-primary mt-4">Calcular</button>
+                        <button class="btn btn-premium w-100 mt-4">Calcular Rescisão</button>
                     </form>
                 </div>
                 <div class="col-lg-7">
@@ -348,7 +418,7 @@
                             <input type="number" step="0.01" class="form-control" name="bonus_anual" id="bonus_anual"
                                 value="0">
                         </div>
-                        <button type="submit" class="btn btn-primary mt-3">Calcular Salário Líquido e Comparar com
+                        <button type="submit" class="btn btn-premium w-100 mt-3">Calcular Salário Líquido e Comparar com
                             PJ</button>
                     </form>
                 </div>
@@ -356,6 +426,111 @@
                     <div id="resultado-salario-content" class="mt-3 printable-area">
                         <div class="card p-4" id="salario-placeholder">
                             <h3 class="text-center text-muted">Preencha os dados ao lado para ver o resultado.</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PÁGINA RESTITUIÇÃO IR -->
+        <div id="page-restituicao-form" class="page">
+            <h2>Calculadora de Imposto de Renda</h2>
+            <div class="row">
+                <div class="col-lg-5">
+                    <form id="form-restituicao" class="card p-4 mt-3">
+                        <div class="mb-3">
+                            <label class="form-label">Nome/Identificação (Opcional)</label>
+                            <input type="text" class="form-control" name="nome_usuario"
+                                placeholder="Ex: Declaração 2026">
+                        </div>
+
+                        <div id="informes-container">
+                            <div class="informe-item card p-3 mb-3 border-secondary position-relative">
+                                <div class="d-flex justify-content-between align-items-center mb-2"
+                                    data-bs-toggle="collapse" href="#collapse-informe-1" role="button">
+                                    <h6 class="mb-0 informe-header-title">Informe de Rendimentos #1</h6>
+                                    <i class="fas fa-chevron-up toggle-icon"></i>
+                                </div>
+                                <div class="collapse show" id="collapse-informe-1">
+                                    <div class="mb-2">
+                                        <label class="form-label small">Fonte Pagadora (Opcional)</label>
+                                        <input type="text" class="form-control form-control-sm" name="fonte_pagadora[]"
+                                            placeholder="Ex: Empresa X" oninput="updateInformeTitle(this)">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label small">Rend. Tributáveis</label>
+                                            <input type="number" step="0.01" class="form-control form-control-sm"
+                                                name="rendimentos_tributaveis[]" required>
+                                            <div class="form-text mt-0" style="font-size: 0.65rem;">Não inclua o 13º
+                                                salário.</div>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label small">INSS Oficial</label>
+                                            <input type="number" step="0.01" class="form-control form-control-sm"
+                                                name="previdencia_oficial[]" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label small">IRRF Retido</label>
+                                            <input type="number" step="0.01" class="form-control form-control-sm"
+                                                name="irrf_retido[]" value="0">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label small">Previdência Privada/Pensão</label>
+                                            <input type="number" step="0.01" class="form-control form-control-sm"
+                                                name="previdencia_privada_informe[]" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-outline-secondary btn-sm mb-3" onclick="addInformeRow()">
+                            <i class="fas fa-plus"></i> Adicionar outro informe
+                        </button>
+
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-3" data-bs-toggle="collapse"
+                            href="#collapse-outras-deducoes" role="button" aria-expanded="false"
+                            aria-controls="collapse-outras-deducoes">
+                            <h5 class="mb-0">Outras Deduções Anuais (Opcional)</h5>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+
+                        <div class="collapse" id="collapse-outras-deducoes">
+                            <div class="mb-3">
+                                <label class="form-label">Número de Dependentes</label>
+                                <input type="number" class="form-control" name="num_dependentes" value="0">
+                                <div class="form-text">Dedução de R$ 2.275,08 por dependente ao ano.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Despesas Médicas</label>
+                                <input type="number" step="0.01" class="form-control" name="despesas_medicas" value="0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Despesas com Instrução</label>
+                                <input type="number" step="0.01" class="form-control" name="despesas_instrucao"
+                                    value="0">
+                                <div class="form-text">Limite anual de R$ 3.561,50 por pessoa.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Pensão Alimentícia Paga</label>
+                                <input type="number" step="0.01" class="form-control" name="pensao_alimenticia"
+                                    value="0">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-premium w-100 mt-3">Calcular Restituição</button>
+                    </form>
+
+                </div>
+                <div class="col-lg-7">
+                    <div id="resultado-restituicao-content" class="mt-3 printable-area">
+                        <div class="card p-4" id="restituicao-placeholder">
+                            <h3 class="text-center text-muted">Preencha os dados ao lado para ver o resultado da sua
+                                restituição.</h3>
                         </div>
                     </div>
                 </div>
@@ -490,13 +665,17 @@
                 newPage.classList.add('active');
                 window.scrollTo(0, 0);
             }
+
+            const navbarCollapse = document.getElementById('navbarNav');
+            if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+                const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse) || new bootstrap.Collapse(navbarCollapse);
+                bsCollapse.hide();
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Navegação inicial
             showPage('page-home');
 
-            // Lógica do formulário de rescisão
             const tipoRescisaoSelect = document.getElementById('tipo_rescisao');
             const avisoPedidoDemissaoDiv = document.getElementById('aviso_pedido_demissao');
             const avisoSemJustaCausaDiv = document.getElementById('aviso_sem_justa_causa');
@@ -565,7 +744,75 @@
 
             // Inicializar Histórico
             renderHistorico();
+
+            // Handler Restituição
+            document.getElementById('form-restituicao').addEventListener('submit', handleRestituicaoSubmit);
         });
+
+        let informeCount = 1;
+
+        function updateInformeTitle(input) {
+            const card = input.closest('.informe-item');
+            const titleEl = card.querySelector('.informe-header-title');
+            const num = titleEl.innerText.split('#')[1];
+            if (input.value.trim()) {
+                titleEl.innerText = `Fonte: ${input.value} (#${num})`;
+            } else {
+                titleEl.innerText = `Informe de Rendimentos #${num}`;
+            }
+        }
+
+        function addInformeRow() {
+            // Minimizar informes anteriores
+            const existingCollapses = document.querySelectorAll('#informes-container .collapse.show');
+            existingCollapses.forEach(c => {
+                const bsCollapse = bootstrap.Collapse.getInstance(c) || new bootstrap.Collapse(c);
+                bsCollapse.hide();
+            });
+
+            informeCount++;
+            const container = document.getElementById('informes-container');
+            const div = document.createElement('div');
+            const collapseId = `collapse-informe-${informeCount}`;
+            div.className = 'informe-item card p-3 mb-3 border-secondary position-relative';
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-2" data-bs-toggle="collapse" href="#${collapseId}" role="button">
+                    <h6 class="mb-0 informe-header-title">Informe de Rendimentos #${informeCount}</h6>
+                    <div class="d-flex align-items-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 me-2" onclick="this.closest('.informe-item').remove()"><i class="fas fa-trash"></i></button>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                </div>
+                <div class="collapse show" id="${collapseId}">
+                    <div class="mb-2">
+                        <label class="form-label small">Fonte Pagadora (Opcional)</label>
+                        <input type="text" class="form-control form-control-sm" name="fonte_pagadora[]" placeholder="Ex: Empresa Y" oninput="updateInformeTitle(this)">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Rend. Tributáveis</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" name="rendimentos_tributaveis[]" required>
+                            <div class="form-text mt-0" style="font-size: 0.65rem;">Não inclua o 13º salário.</div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">INSS Oficial</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" name="previdencia_oficial[]" value="0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">IRRF Retido</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" name="irrf_retido[]" value="0">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Previdência Privada/Pensão</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" name="previdencia_privada_informe[]" value="0">
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
 
 
         // ===================================================================================
@@ -582,10 +829,10 @@
 
         // Tabelas de 2025 (exemplo) - confirmar valores oficiais
         const TABELA_INSS = [
-            { limite: 1518.00, aliquota: 0.075 },
-            { limite: 2793.88, aliquota: 0.09 },
-            { limite: 4190.83, aliquota: 0.12 },
-            { limite: 8157.41, aliquota: 0.14 },
+            { limite: 1621.00, aliquota: 0.075 },
+            { limite: 2902.84, aliquota: 0.09 },
+            { limite: 4354.27, aliquota: 0.12 },
+            { limite: 8475.55, aliquota: 0.14 },
         ];
 
         const TABELA_IRRF = [
@@ -596,7 +843,19 @@
             { limite: Infinity, aliquota: 0.275, deducao: 908.73 },
         ];
 
+        const TABELA_IRRF_ANUAL = [
+            { limite: 29145.60, aliquota: 0.0, deducao: 0.00 },
+            { limite: 33919.80, aliquota: 0.075, deducao: 2185.92 },
+            { limite: 45012.60, aliquota: 0.15, deducao: 4729.91 },
+            { limite: 55976.16, aliquota: 0.225, deducao: 8105.85 },
+            { limite: Infinity, aliquota: 0.275, deducao: 10904.66 },
+        ];
+
         const DEDUCAO_DEPENDENTE_IRRF = 189.59;
+        const DEDUCAO_ANUAL_DEPENDENTE = 2275.08;
+        const LIMITE_ANUAL_INSTRUCAO = 3561.50;
+        const LIMITE_DESCONTO_SIMPLIFICADO = 17640.00; // Valor atualizado 2026
+        const ISENCAO_ANUAL_65_MAIS = 24751.74; // R$ 1.903,98 * 13 (inclui 13º isento usualmente)
 
         // Funções de utilidade de data
         function parseDate(dateString) {
@@ -1132,7 +1391,7 @@
                 type: type,
                 input: input,
                 output: {
-                    liquido: output['Líquido a Receber']?.valor || output['Salário Líquido']?.valor || 0
+                    liquido: output['Líquido a Receber']?.valor || output['Salário Líquido']?.valor || (output.simplificado ? Math.max(output.simplificado.restituicao, output.completo.restituicao) : 0)
                 }
             };
 
@@ -1182,7 +1441,9 @@
             emptyState.style.display = 'none';
             body.innerHTML = history.map(entry => {
                 const date = new Date(entry.timestamp).toLocaleString('pt-BR');
-                const icon = entry.type === 'Rescisão' ? 'fa-file-invoice-dollar' : 'fa-hand-holding-dollar';
+                let icon = 'fa-hand-holding-dollar';
+                if (entry.type === 'Rescisão') icon = 'fa-file-invoice-dollar';
+                if (entry.type === 'Restituição') icon = 'fa-receipt';
 
                 return `
                     <tr>
@@ -1301,7 +1562,244 @@
 
                 // Disparar cálculo
                 form.dispatchEvent(new Event('submit'));
+            } else if (entry.type === 'Restituição') {
+                showPage('page-restituicao-form');
+                const form = document.getElementById('form-restituicao');
+
+                // Limpar informes adicionais antes de reencher (exceto o primeiro)
+                const container = document.getElementById('informes-container');
+                while (container.children.length > 1) {
+                    container.lastChild.remove();
+                }
+
+                // Preencher campos básicos
+                form.querySelector('[name="num_dependentes"]').value = entry.input.num_dependentes;
+                form.querySelector('[name="despesas_medicas"]').value = entry.input.despesas_medicas;
+                form.querySelector('[name="despesas_instrucao"]').value = entry.input.despesas_instrucao;
+                form.querySelector('[name="pensao_alimenticia"]').value = entry.input.pensao_alimenticia;
+                form.querySelector('[name="nome_usuario"]').value = entry.input.nome_usuario || "";
+
+                // Nota: O histórico simplificado pode ter perdido o detalhamento de cada informe se for muito complexo,
+                // mas temos os totais salvos no inputData em handleRestituicaoSubmit
+                const firstInforme = container.querySelector('.informe-item');
+                firstInforme.querySelector('[name="rendimentos_tributaveis[]"]').value = entry.input.rendimentos;
+                firstInforme.querySelector('[name="previdencia_oficial[]"]').value = entry.input.previdencia_oficial;
+                firstInforme.querySelector('[name="irrf_retido[]"]').value = entry.input.irrf_retido;
+                firstInforme.querySelector('[name="previdencia_privada_informe[]"]').value = entry.input.previdencia_privada;
+
+                form.dispatchEvent(new Event('submit'));
             }
+        }
+
+        function handleRestituicaoSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            // Coleta de múltiplos informes
+            const rendimentos = formData.getAll('rendimentos_tributaveis[]');
+            const previdencia_oficial = formData.getAll('previdencia_oficial[]');
+            const irrf_retido = formData.getAll('irrf_retido[]');
+            const previdencia_privada_informe = formData.getAll('previdencia_privada_informe[]');
+
+            let totalRendimentos = 0;
+            let totalPrevidenciaOficial = 0;
+            let totalIrrfRetido = 0;
+            let totalPrevidenciaPrivada = 0;
+
+            for (let i = 0; i < rendimentos.length; i++) {
+                totalRendimentos += parseFloat(rendimentos[i] || 0);
+                totalPrevidenciaOficial += parseFloat(previdencia_oficial[i] || 0);
+                totalIrrfRetido += parseFloat(irrf_retido[i] || 0);
+                totalPrevidenciaPrivada += parseFloat(previdencia_privada_informe[i] || 0);
+            }
+
+            const inputData = {
+                nome_usuario: formData.get('nome_usuario'),
+                rendimentos: totalRendimentos,
+                previdencia_oficial: totalPrevidenciaOficial,
+                irrf_retido: totalIrrfRetido,
+                previdencia_privada: totalPrevidenciaPrivada,
+                num_dependentes: parseInt(formData.get('num_dependentes') || 0),
+                despesas_medicas: parseFloat(formData.get('despesas_medicas') || 0),
+                despesas_instrucao: parseFloat(formData.get('despesas_instrucao') || 0),
+                pensao_alimenticia: parseFloat(formData.get('pensao_alimenticia') || 0)
+            };
+
+            const resultado = calcular_restituicao_completo(inputData);
+            renderRestituicaoResult(resultado);
+            saveToHistory('Restituição', inputData, resultado);
+        }
+
+        function calcular_restituicao_completo(dados) {
+            const rendimentos = dados.rendimentos;
+            const retido = dados.irrf_retido;
+
+            const desconto_padrao = Math.min(rendimentos * 0.20, LIMITE_DESCONTO_SIMPLIFICADO);
+            const base_simplificada = Math.max(0, rendimentos - desconto_padrao);
+            const imposto_simplificado = calcular_imposto_anual(base_simplificada);
+
+            const deducao_dependentes = dados.num_dependentes * DEDUCAO_ANUAL_DEPENDENTE;
+            const deducao_instrucao = Math.min(dados.despesas_instrucao, (dados.num_dependentes + 1) * LIMITE_ANUAL_INSTRUCAO);
+            const deducao_previdencia_privada = Math.min(dados.previdencia_privada, rendimentos * 0.12);
+
+            const total_deducoes = deducao_dependentes + deducao_instrucao + dados.despesas_medicas + dados.pensao_alimenticia + dados.previdencia_oficial + deducao_previdencia_privada;
+            const base_completa = Math.max(0, rendimentos - total_deducoes);
+            const imposto_completo = calcular_imposto_anual(base_completa);
+
+            const desc_simplificada = `Rendimento Tributável (R$ ${rendimentos.toFixed(2)}) - Desconto Simplificado (R$ ${desconto_padrao.toFixed(2)}) = Base de Cálculo R$ ${base_simplificada.toFixed(2)}`;
+            const desc_completa = `Rendimento Tributável (R$ ${rendimentos.toFixed(2)}) - Total de Deduções (R$ ${total_deducoes.toFixed(2)}) = Base de Cálculo R$ ${base_completa.toFixed(2)}`;
+
+            return {
+                resumo: {
+                    total_rendimentos: rendimentos,
+                    total_retido: retido
+                },
+                simplificado: {
+                    base: base_simplificada,
+                    imposto_devido: imposto_simplificado.valor,
+                    desconto: desconto_padrao,
+                    restituicao: retido - imposto_simplificado.valor,
+                    calculo: `${desc_simplificada}\n${imposto_simplificado.calculo}`
+                },
+                completo: {
+                    base: base_completa,
+                    imposto_devido: imposto_completo.valor,
+                    deducoes: total_deducoes,
+                    detalhe_deducoes: {
+                        "Previdência Oficial": dados.previdencia_oficial,
+                        "Dependentes": deducao_dependentes,
+                        "Instrução": deducao_instrucao,
+                        "Médicas": dados.despesas_medicas,
+                        "Pensão": dados.pensao_alimenticia,
+                        "Previdência Privada (limite 12%)": deducao_previdencia_privada
+                    },
+                    restituicao: retido - imposto_completo.valor,
+                    calculo: `${desc_completa}\n${imposto_completo.calculo}`
+                }
+            };
+        }
+
+        function calcular_imposto_anual(base) {
+            let aliquota = 0, deducao = 0;
+            for (const faixa of TABELA_IRRF_ANUAL) {
+                if (base <= faixa.limite) {
+                    aliquota = faixa.aliquota;
+                    deducao = faixa.deducao;
+                    break;
+                }
+            }
+            const valor = (base * aliquota) - deducao;
+            const calculo = `Base Anual: R$ ${base.toFixed(2)}. Alíquota: ${aliquota * 100}%. Parcela a deduzir: R$ ${deducao.toFixed(2)}.`;
+            return { valor: Math.max(0, valor), calculo };
+        }
+
+        function renderRestituicaoResult(resultado) {
+            const container = document.getElementById('resultado-restituicao-content');
+            document.getElementById('restituicao-placeholder')?.remove();
+
+            const melhorOpcao = resultado.simplificado.restituicao > resultado.completo.restituicao ? 'Simplificado' : 'Completo';
+            const bestRes = resultado[melhorOpcao.toLowerCase()];
+            const isRestituicao = bestRes.restituicao >= 0;
+
+            let html = `
+                <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+                    <h2>Resultado da Restituição</h2>
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="window.print()">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
+
+                <div class="alert ${isRestituicao ? 'alert-success bg-restituicao-suave' : 'alert-danger bg-pagamento-suave'} mb-4 border-2">
+                    <h5><i class="fas ${isRestituicao ? 'fa-coins' : 'fa-exclamation-triangle'}"></i> Modelo Recomendado: ${melhorOpcao}</h5>
+                    <p class="fs-4 mb-0"><strong>${isRestituicao ? 'Restituição a Receber' : 'Imposto a Pagar'}: R$ ${Math.abs(bestRes.restituicao).toFixed(2)}</strong></p>
+                    <small class="text-muted">Diferença de aproveitamento versus o outro modelo: R$ ${Math.abs(resultado.simplificado.restituicao - resultado.completo.restituicao).toFixed(2)}</small>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 ${melhorOpcao === 'Simplificado' ? 'card-melhor-opcao border-success' : 'opacity-75'}">
+                            <div class="card-body">
+                                <h6 class="card-title d-flex justify-content-between">
+                                    Modelo Simplificado
+                                    ${melhorOpcao === 'Simplificado' ? '<span class="badge bg-success">Recomendado</span>' : ''}
+                                </h6>
+                                <hr>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless">
+                                        <tr><td>Total Rendimentos</td><td class="text-end">R$ ${resultado.resumo.total_rendimentos.toFixed(2)}</td></tr>
+                                        <tr><td>(-) Desconto 20%</td><td class="text-end text-danger">- R$ ${resultado.simplificado.desconto.toFixed(2)}</td></tr>
+                                        <tr class="border-top"><td><strong>(=) Base de Cálculo</strong></td><td class="text-end"><strong>R$ ${resultado.simplificado.base.toFixed(2)}</strong></td></tr>
+                                        <tr><td>Imposto Devido</td><td class="text-end">R$ ${resultado.simplificado.imposto_devido.toFixed(2)}</td></tr>
+                                        <tr><td>Total Retido (Pago)</td><td class="text-end">R$ ${resultado.resumo.total_retido.toFixed(2)}</td></tr>
+                                        <tr class="table-light border-top">
+                                            <td><strong>${resultado.simplificado.restituicao >= 0 ? 'Restituição' : 'A Pagar'}</strong></td>
+                                            <td class="text-end text-primary"><strong>R$ ${Math.abs(resultado.simplificado.restituicao).toFixed(2)}</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary w-100 mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#calc-simp">
+                                    <i class="fas fa-search-plus"></i>
+                                </button>
+                                <div class="collapse mt-2" id="calc-simp">
+                                    <div class="p-3 rounded small" style="background-color: var(--info-bg);">
+                                        <pre class="mb-0">${resultado.simplificado.calculo}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 ${melhorOpcao === 'Completo' ? 'card-melhor-opcao border-success' : 'opacity-75'}">
+                            <div class="card-body">
+                                <h6 class="card-title d-flex justify-content-between">
+                                    Modelo Completo
+                                    ${melhorOpcao === 'Completo' ? '<span class="badge bg-success">Recomendado</span>' : ''}
+                                </h6>
+                                <hr>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless">
+                                        <tr><td>Total Rendimentos</td><td class="text-end">R$ ${resultado.resumo.total_rendimentos.toFixed(2)}</td></tr>
+                                        <tr><td>(-) Soma Deduções</td><td class="text-end text-danger">- R$ ${resultado.completo.deducoes.toFixed(2)}</td></tr>
+                                        <tr class="border-top"><td><strong>(=) Base de Cálculo</strong></td><td class="text-end"><strong>R$ ${resultado.completo.base.toFixed(2)}</strong></td></tr>
+                                        <tr><td>Imposto Devido</td><td class="text-end">R$ ${resultado.completo.imposto_devido.toFixed(2)}</td></tr>
+                                        <tr><td>Total Retido (Pago)</td><td class="text-end">R$ ${resultado.resumo.total_retido.toFixed(2)}</td></tr>
+                                        <tr class="table-light border-top">
+                                            <td><strong>${resultado.completo.restituicao >= 0 ? 'Restituição' : 'A Pagar'}</strong></td>
+                                            <td class="text-end text-primary"><strong>R$ ${Math.abs(resultado.completo.restituicao).toFixed(2)}</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary w-100 mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#calc-comp">
+                                    <i class="fas fa-search-plus"></i>
+                                </button>
+                                <div class="collapse mt-2" id="calc-comp">
+                                    <div class="p-3 rounded small" style="background-color: var(--info-bg);">
+                                        <pre class="mb-0">${resultado.completo.calculo}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-3 mb-3">
+                    <h6 class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#detalhe-completo-itens" role="button">
+                        Detalhamento das Deduções Utilizadas
+                        <i class="fas fa-chevron-down small"></i>
+                    </h6>
+                    <div class="collapse show" id="detalhe-completo-itens">
+                        <hr>
+                        <table class="table table-sm mb-0">
+                            ${Object.entries(resultado.completo.detalhe_deducoes).map(([label, val]) => `
+                                <tr><td>${label}</td><td class="text-end">R$ ${val.toFixed(2)}</td></tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
         }
 
         function preencherDataSaida(tipo) {
