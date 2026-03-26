@@ -39,28 +39,15 @@ def registrar_dimensoes_e_metricas():
         "app_user_id",
         
         "salario_01_nome_usuario",
-        "salario_02_salario_bruto",
-        "salario_03_num_dependentes",
-        "salario_04_va_vr_mensal",
-        "salario_05_bonus_anual",
         
         "rescisao_01_nome_usuario",
         "rescisao_02_tipo_rescisao",
-        "rescisao_03_salario",
         "rescisao_04_dia_pagamento",
         "rescisao_05_data_inicio",
         "rescisao_06_data_fim",
         "rescisao_07_tem_ferias_vencidas",
         
-        "restituicao_01_nome_usuario",
-        "restituicao_02_rendimentos",
-        "restituicao_03_previdencia_oficial",
-        "restituicao_04_irrf_retido",
-        "restituicao_05_previdencia_privada",
-        "restituicao_06_num_dependentes",
-        "restituicao_07_despesas_medicas",
-        "restituicao_08_despesas_instrucao",
-        "restituicao_09_pensao_alimenticia"
+        "restituicao_01_nome_usuario"
     ]
     
     print("\n--- REGISTRANDO DIMENSÕES PERSONALIZADAS ---")
@@ -83,7 +70,23 @@ def registrar_dimensoes_e_metricas():
     metricas = [
         ("salario_receber", "Moeda Salario a Receber"),
         ("rescisao_receber", "Moeda Rescisao a Receber"),
-        ("restituicao_receber", "Moeda Restituicao a Receber")
+        ("restituicao_receber", "Moeda Restituicao a Receber"),
+        
+        ("salario_02_salario_bruto", "Salario Bruto"),
+        ("salario_03_num_dependentes", "Num Dependentes Salario"),
+        ("salario_04_va_vr_mensal", "VA VR Mensal"),
+        ("salario_05_bonus_anual", "Bonus Anual"),
+        
+        ("rescisao_03_salario", "Salario Rescisao"),
+        
+        ("restituicao_02_rendimentos", "Rendimentos Restituicao"),
+        ("restituicao_03_previdencia_oficial", "Previdencia Oficial"),
+        ("restituicao_04_irrf_retido", "IRRF Retido"),
+        ("restituicao_05_previdencia_privada", "Previdencia Privada"),
+        ("restituicao_06_num_dependentes", "Num Dependentes Restituicao"),
+        ("restituicao_07_despesas_medicas", "Despesas Medicas"),
+        ("restituicao_08_despesas_instrucao", "Despesas Instrucao"),
+        ("restituicao_09_pensao_alimenticia", "Pensao Alimenticia")
     ]
     
     print("\n--- REGISTRANDO MÉTRICAS PERSONALIZADAS ---")
