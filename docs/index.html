@@ -671,6 +671,14 @@
                 const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse) || new bootstrap.Collapse(navbarCollapse);
                 bsCollapse.hide();
             }
+
+            if (typeof gtag === 'function') {
+                gtag('event', 'page_view', {
+                    page_title: pageId.replace('page-', '').replace('-', ' ').toUpperCase(),
+                    page_location: window.location.href,
+                    page_path: '/' + pageId
+                });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1378,9 +1386,9 @@
 
         function trackEvent(name, params) {
             if (typeof gtag === 'function') {
-                gtag('event', name, params);
+                gtag('event', name, { ...params, app_user_id: typeof userId !== 'undefined' ? userId : '' });
             }
-            console.log(`[Analytics] Event: ${name}`, params);
+            //console.log(`[Analytics] Event: ${name}`, params);
         }
 
         function saveToHistory(type, input, output) {
@@ -1401,14 +1409,26 @@
             localStorage.setItem('calculadora_historico', JSON.stringify(history));
             renderHistorico();
 
-            const prefix = type.toLowerCase().startsWith('resc') ? 'rescisao_' : 'salario_';
+            let prefix = 'salario_';
+            let valueKey = 'salario_receber';
+            if (type.toLowerCase().startsWith('resc')) {
+                prefix = 'rescisao_';
+                valueKey = 'rescisao_receber';
+            } else if (type.toLowerCase().startsWith('rest')) {
+                prefix = 'restituicao_';
+                valueKey = 'restituicao_receber';
+            }
+
             const analyticsParams = {
                 calculation_type: type,
-                value: entry.output.liquido
+                [valueKey]: entry.output.liquido
             };
 
+            let fieldIndex = 1;
             for (let key in input) {
-                analyticsParams[prefix + key] = input[key];
+                const orderedKey = `${fieldIndex.toString().padStart(2, '0')}_${key}`;
+                analyticsParams[prefix + orderedKey] = input[key];
+                fieldIndex++;
             }
 
             analyticsParams['tech_ua'] = navigator.userAgent;
